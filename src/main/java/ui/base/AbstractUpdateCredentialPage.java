@@ -11,6 +11,7 @@ import pojo.Employee;
 import service.UserService;
 import service.EmployeeService;
 import util.SessionManager;
+import util.PasswordUtil;
 
 public abstract class AbstractUpdateCredentialPage extends JFrame {
     protected UserService userService;
@@ -109,10 +110,19 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
     }
 
     protected boolean validateCurrentPassword() {
-        return Arrays.equals(
-            passwordCurrentField.getPassword(),
-            currentUser.getPassword().toCharArray()
-        );
+
+    String plaintextCurrentPassword =
+            new String(
+                    passwordCurrentField.getPassword()
+            );
+
+    String storedHash =
+            currentUser.getPassword();
+
+    return PasswordUtil.verify(
+            plaintextCurrentPassword,
+            storedHash
+            );
     }
 
     protected boolean validateNewPasswordStrength(String pw) {

@@ -93,6 +93,13 @@
             <artifactId>jcalendar</artifactId>
             <version>1.4</version>
         </dependency>
+        
+        <!-- BCrypt password hashing -->
+        <dependency>
+            <groupId>org.mindrot</groupId>
+            <artifactId>jbcrypt</artifactId>
+             <version>0.4</version>
+        </dependency>
     </dependencies>
 
     <name>MO-IT153-S4101-Group8-MotorPHPayrollSystem</name>
