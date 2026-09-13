@@ -2,6 +2,7 @@ package service;
 
 import db.DatabaseConnection;
 import pojo.User;
+import util.AuditLogger;
 import util.PasswordUtil;
 
 import java.sql.Connection;
@@ -20,6 +21,9 @@ public class LoginService {
     /**
      * Authenticates a user using BCrypt verification and timed
      * account lockout after repeated failed attempts.
+     *
+     * Authentication-related security events are also written
+     * through AuditLogger for traceability.
      */
     public User login(String userInput, String plaintextPassword)
             throws SQLException {
@@ -44,7 +48,22 @@ public class LoginService {
 
             try (ResultSet rs = ps.executeQuery()) {
 
+                /*
+                 * Account identifier was not found.
+                 *
+                 * We intentionally do not place the entered username/email
+                 * into the audit details to avoid unnecessarily recording
+                 * user-controlled authentication input.
+                 */
                 if (!rs.next()) {
+
+                    AuditLogger.log(
+                            null,
+                            "LOGIN_FAILED",
+                            "Unknown account identifier",
+                            null
+                    );
+
                     return null;
                 }
 
@@ -75,20 +94,35 @@ public class LoginService {
                 String username =
                         rs.getString("username");
 
-                Instant now = Instant.now();
+                Instant now =
+                        Instant.now();
 
                 /*
-                 * Reject login while the lockout window is active.
+                 * Reject authentication while the account's
+                 * lockout window is still active.
+                 *
+                 * The ACCOUNT_LOCKED event represents the moment
+                 * the lock was created. LOGIN_BLOCKED_LOCKED records
+                 * any later login attempts while that lock remains active.
                  */
                 if (lockedUntil != null
                         && lockedUntil.toInstant().isAfter(now)) {
+
+                    AuditLogger.log(
+                            userId,
+                            "LOGIN_BLOCKED_LOCKED",
+                            "Login blocked while account lockout is active; "
+                                    + "locked_until="
+                                    + lockedUntil,
+                            null
+                    );
 
                     return null;
                 }
 
                 /*
-                 * If the old lockout period has already expired,
-                 * clear the previous counters before continuing.
+                 * If a previous lockout period has already expired,
+                 * clear the stale failed-attempt and lockout state.
                  */
                 if (lockedUntil != null
                         && !lockedUntil.toInstant().isAfter(now)) {
@@ -101,6 +135,13 @@ public class LoginService {
                     failedAttempts = 0;
                 }
 
+                /*
+                 * Password verification happens in the Java
+                 * application layer using BCrypt.
+                 *
+                 * The plaintext password is never included
+                 * in the SQL query or audit log.
+                 */
                 boolean passwordValid =
                         PasswordUtil.verify(
                                 plaintextPassword,
@@ -108,18 +149,21 @@ public class LoginService {
                         );
 
                 /*
-                 * Wrong password:
-                 * increment failed-attempt counter and apply
-                 * a 15-minute lock after the fifth failure.
+                 * Incorrect password:
+                 *
+                 * Increment the failed-attempt counter.
+                 * After the fifth failure, apply a 15-minute lock.
                  */
                 if (!passwordValid) {
 
                     int newFailedAttempts =
                             failedAttempts + 1;
 
-                    Timestamp newLockedUntil = null;
+                    Timestamp newLockedUntil =
+                            null;
 
-                    if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+                    if (newFailedAttempts
+                            >= MAX_FAILED_ATTEMPTS) {
 
                         newFailedAttempts =
                                 MAX_FAILED_ATTEMPTS;
@@ -141,27 +185,72 @@ public class LoginService {
                             newLockedUntil
                     );
 
+                    /*
+                     * Fifth failed attempt:
+                     * the account has now entered the lockout state.
+                     */
+                    if (newLockedUntil != null) {
+
+                        AuditLogger.log(
+                                userId,
+                                "ACCOUNT_LOCKED",
+                                "failed_attempts="
+                                        + newFailedAttempts
+                                        + "; locked_until="
+                                        + newLockedUntil,
+                                null
+                        );
+
+                    /*
+                     * Failed attempts before the lockout threshold.
+                     */
+                    } else {
+
+                        AuditLogger.log(
+                                userId,
+                                "LOGIN_FAILED",
+                                "failed_attempts="
+                                        + newFailedAttempts,
+                                null
+                        );
+                    }
+
                     return null;
                 }
 
                 /*
-                 * Successful authentication clears all
-                 * failed-attempt and lockout state.
+                 * Successful authentication clears any previous
+                 * failed-attempt state.
                  */
                 resetLoginState(
                         conn,
                         userId
                 );
 
-                User user = new User();
+                /*
+                 * Record successful authentication.
+                 */
+                AuditLogger.log(
+                        userId,
+                        "LOGIN_SUCCESS",
+                        "Authentication completed successfully",
+                        null
+                );
 
-                user.setUserID(userId);
+                User user =
+                        new User();
+
+                user.setUserID(
+                        userId
+                );
 
                 /*
-                 * Do not expose the password hash through
-                 * the authenticated session object.
+                 * Do not expose the stored BCrypt password hash
+                 * through the authenticated User/session object.
                  */
-                user.setPassword(null);
+                user.setPassword(
+                        null
+                );
 
                 user.setAccountStatus(
                         accountStatus
@@ -188,6 +277,9 @@ public class LoginService {
         }
     }
 
+    /**
+     * Updates the failed-login state of an authentication account.
+     */
     private void updateFailureState(
             Connection conn,
             String userId,
@@ -197,7 +289,8 @@ public class LoginService {
 
         String sql =
                 "UPDATE authentication " +
-                "SET failed_attempts = ?, locked_until = ? " +
+                "SET failed_attempts = ?, " +
+                "locked_until = ? " +
                 "WHERE userID = ?";
 
         try (PreparedStatement ps =
@@ -209,11 +302,14 @@ public class LoginService {
             );
 
             if (lockedUntil == null) {
+
                 ps.setNull(
                         2,
                         java.sql.Types.TIMESTAMP
                 );
+
             } else {
+
                 ps.setTimestamp(
                         2,
                         lockedUntil
@@ -229,6 +325,12 @@ public class LoginService {
         }
     }
 
+    /**
+     * Clears failed-attempt and lockout state after either:
+     *
+     * 1. a successful login, or
+     * 2. expiration of the previous lockout period.
+     */
     private void resetLoginState(
             Connection conn,
             String userId
@@ -236,7 +338,8 @@ public class LoginService {
 
         String sql =
                 "UPDATE authentication " +
-                "SET failed_attempts = 0, locked_until = NULL " +
+                "SET failed_attempts = 0, " +
+                "locked_until = NULL " +
                 "WHERE userID = ?";
 
         try (PreparedStatement ps =
@@ -251,6 +354,9 @@ public class LoginService {
         }
     }
 
+    /**
+     * Retrieves the employee ID associated with a user account.
+     */
     public int getEmployeeIDByUserID(
             String userID
     ) throws SQLException {
@@ -270,7 +376,8 @@ public class LoginService {
                     userID
             );
 
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs =
+                         ps.executeQuery()) {
 
                 return rs.next()
                         ? rs.getInt("employeeID")
@@ -279,6 +386,10 @@ public class LoginService {
         }
     }
 
+    /**
+     * Checks whether an account exists using either its User ID
+     * or associated employee email address.
+     */
     public boolean doesUserExist(
             String userInput
     ) throws SQLException {
@@ -286,7 +397,8 @@ public class LoginService {
         String sql =
                 "SELECT 1 " +
                 "FROM authentication a " +
-                "LEFT JOIN employee e ON e.userID = a.userID " +
+                "LEFT JOIN employee e " +
+                "ON e.userID = a.userID " +
                 "WHERE a.userID = ? OR e.email = ?";
 
         try (Connection conn =
@@ -304,24 +416,31 @@ public class LoginService {
                     userInput
             );
 
-            try (ResultSet rs = ps.executeQuery()) {
+            try (ResultSet rs =
+                         ps.executeQuery()) {
 
                 return rs.next();
             }
         }
     }
-    
-    
-        /**
+
+    /**
      * Returns the lockout expiration timestamp for an account.
+     *
+     * This method is used by the Swing login UI to display the
+     * temporary-lockout message and expiration time.
+     *
+     * Lockout enforcement itself remains inside login(), not
+     * inside the UI.
      *
      * @param userInput User ID or email address
      * @return lockout expiration timestamp, or null if the account
-     *         does not exist or is not currently assigned a lockout time
+     *         does not exist or does not currently have a lockout time
      * @throws SQLException if the database query fails
      */
-    public Timestamp getLockedUntil(String userInput)
-            throws SQLException {
+    public Timestamp getLockedUntil(
+            String userInput
+    ) throws SQLException {
 
         String sql =
                 "SELECT a.locked_until " +
@@ -350,6 +469,7 @@ public class LoginService {
                          ps.executeQuery()) {
 
                 if (rs.next()) {
+
                     return rs.getTimestamp(
                             "locked_until"
                     );
