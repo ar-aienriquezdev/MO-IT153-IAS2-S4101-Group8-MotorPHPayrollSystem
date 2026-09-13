@@ -1,119 +1,344 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>motorph</groupId>
     <artifactId>MO-IT153-S4101-Group-8</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>23</maven.compiler.release>
-        <exec.mainClass>main.Main</exec.mainClass>
+        <project.build.sourceEncoding>
+            UTF-8
+        </project.build.sourceEncoding>
+
+        <maven.compiler.release>
+            23
+        </maven.compiler.release>
+
+        <exec.mainClass>
+            main.Main
+        </exec.mainClass>
+
+        <!-- JaCoCo version used for test coverage reporting -->
+        <jacoco.version>
+            0.8.13
+        </jacoco.version>
     </properties>
-    
+
     <repositories>
+
         <repository>
             <id>jaspersoft-repo</id>
-            <url>https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts/</url>
+            <url>
+                https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts/
+            </url>
         </repository>
-    </repositories>    
+
+    </repositories>
 
     <dependencies>
+
         <!-- JDBC -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>9.3.0</version>
+            <groupId>
+                com.mysql
+            </groupId>
+
+            <artifactId>
+                mysql-connector-j
+            </artifactId>
+
+            <version>
+                9.3.0
+            </version>
         </dependency>
-        
-        <!-- Jasper Report Integration Date Added: June 11, 2025 --> 
-       
+
         <!-- JasperReports Core -->
         <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports</artifactId>
-            <version>6.21.3</version>
+            <groupId>
+                net.sf.jasperreports
+            </groupId>
+
+            <artifactId>
+                jasperreports
+            </artifactId>
+
+            <version>
+                6.21.3
+            </version>
         </dependency>
 
         <!-- JasperReports Fonts -->
         <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports-fonts</artifactId>
-            <version>6.21.3</version>
+            <groupId>
+                net.sf.jasperreports
+            </groupId>
+
+            <artifactId>
+                jasperreports-fonts
+            </artifactId>
+
+            <version>
+                6.21.3
+            </version>
         </dependency>
 
         <!-- JasperReports Functions -->
         <dependency>
-            <groupId>net.sf.jasperreports</groupId>
-            <artifactId>jasperreports-functions</artifactId>
-            <version>6.21.3</version>
+            <groupId>
+                net.sf.jasperreports
+            </groupId>
+
+            <artifactId>
+                jasperreports-functions
+            </artifactId>
+
+            <version>
+                6.21.3
+            </version>
         </dependency>
 
-        <!-- iText - Required for PDF export (this version is safe/legal with JasperReports) -->
+        <!--
+            OpenPDF
+            Required for JasperReports PDF export.
+        -->
         <dependency>
-            <groupId>com.github.librepdf</groupId>
-            <artifactId>openpdf</artifactId>
-            <version>1.3.29</version>
+            <groupId>
+                com.github.librepdf
+            </groupId>
+
+            <artifactId>
+                openpdf
+            </artifactId>
+
+            <version>
+                1.3.29
+            </version>
         </dependency>
 
         <!-- Jakarta Activation API -->
         <dependency>
-            <groupId>com.sun.activation</groupId>
-            <artifactId>jakarta.activation</artifactId>
-            <version>2.0.1</version>
+            <groupId>
+                com.sun.activation
+            </groupId>
+
+            <artifactId>
+                jakarta.activation
+            </artifactId>
+
+            <version>
+                2.0.1
+            </version>
         </dependency>
 
-        <!-- JAXB - Required for JDK 11+ and above (JDK 23 needs it explicitly) -->
+        <!--
+            JAXB runtime.
+            Required explicitly for modern JDK versions.
+        -->
         <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-            <version>3.0.2</version>
+            <groupId>
+                org.glassfish.jaxb
+            </groupId>
+
+            <artifactId>
+                jaxb-runtime
+            </artifactId>
+
+            <version>
+                3.0.2
+            </version>
         </dependency>
 
+        <!-- NetBeans AbsoluteLayout -->
         <dependency>
-            <groupId>org.netbeans.external</groupId>
-            <artifactId>AbsoluteLayout</artifactId>
-            <version>RELEASE240</version>
+            <groupId>
+                org.netbeans.external
+            </groupId>
+
+            <artifactId>
+                AbsoluteLayout
+            </artifactId>
+
+            <version>
+                RELEASE240
+            </version>
         </dependency>
 
-        <!-- JUnit Testing -->
+        <!-- JUnit 5 -->
         <dependency>
-          <groupId>org.junit.jupiter</groupId>
-          <artifactId>junit-jupiter</artifactId>
-          <version>5.13.1</version>
-          <scope>test</scope>
+            <groupId>
+                org.junit.jupiter
+            </groupId>
+
+            <artifactId>
+                junit-jupiter
+            </artifactId>
+
+            <version>
+                5.13.1
+            </version>
+
+            <scope>
+                test
+            </scope>
         </dependency>
+
+        <!-- JCalendar -->
         <dependency>
-            <groupId>com.toedter</groupId>
-            <artifactId>jcalendar</artifactId>
-            <version>1.4</version>
+            <groupId>
+                com.toedter
+            </groupId>
+
+            <artifactId>
+                jcalendar
+            </artifactId>
+
+            <version>
+                1.4
+            </version>
         </dependency>
-        
+
         <!-- BCrypt password hashing -->
         <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
-             <version>0.4</version>
-        </dependency>
-        
-        <!-- Log4j2 for local security/audit file logging -->
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.23.1</version>
+            <groupId>
+                org.mindrot
+            </groupId>
+
+            <artifactId>
+                jbcrypt
+            </artifactId>
+
+            <version>
+                0.4
+            </version>
         </dependency>
 
+        <!-- Log4j2 API -->
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.23.1</version>
+            <groupId>
+                org.apache.logging.log4j
+            </groupId>
+
+            <artifactId>
+                log4j-api
+            </artifactId>
+
+            <version>
+                2.23.1
+            </version>
         </dependency>
+
+        <!-- Log4j2 Core -->
+        <dependency>
+            <groupId>
+                org.apache.logging.log4j
+            </groupId>
+
+            <artifactId>
+                log4j-core
+            </artifactId>
+
+            <version>
+                2.23.1
+            </version>
+        </dependency>
+
     </dependencies>
 
-    <name>MO-IT153-S4101-Group8-MotorPHPayrollSystem</name>
+    <!-- =========================================================
+         Build and Code Coverage Configuration
+         ========================================================= -->
+    <build>
+
+        <plugins>
+
+            <!--
+                JaCoCo Java Code Coverage
+
+                prepare-agent:
+                Instruments the application while JUnit tests run
+                so JaCoCo can record which code was executed.
+
+                report:
+                Generates the human-readable HTML coverage report
+                after tests have completed successfully.
+
+                No minimum coverage threshold is enforced at this
+                pre-audit stage. Coverage gaps will instead be
+                evaluated as audit evidence.
+            -->
+            <plugin>
+
+                <groupId>
+                    org.jacoco
+                </groupId>
+
+                <artifactId>
+                    jacoco-maven-plugin
+                </artifactId>
+
+                <version>
+                    ${jacoco.version}
+                </version>
+
+                <executions>
+
+                    <!-- Attach the JaCoCo agent before tests run -->
+                    <execution>
+
+                        <id>
+                            prepare-agent
+                        </id>
+
+                        <goals>
+
+                            <goal>
+                                prepare-agent
+                            </goal>
+
+                        </goals>
+
+                    </execution>
+
+                    <!--
+                        Generate the report during Maven's verify
+                        phase, after the tests have completed.
+                    -->
+                    <execution>
+
+                        <id>
+                            jacoco-report
+                        </id>
+
+                        <phase>
+                            verify
+                        </phase>
+
+                        <goals>
+
+                            <goal>
+                                report
+                            </goal>
+
+                        </goals>
+
+                    </execution>
+
+                </executions>
+
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+    <name>
+        MO-IT153-S4101-Group8-MotorPHPayrollSystem
+    </name>
+
 </project>

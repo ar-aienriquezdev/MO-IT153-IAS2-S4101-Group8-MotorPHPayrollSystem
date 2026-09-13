@@ -30,7 +30,8 @@ The current pre-audit implementation includes:
 - ✅ **Environment-based database credential configuration** so database usernames and passwords are not stored in Java source code
 - ✅ **PreparedStatement-based SQL access** throughout the DAO layer
 - ✅ **Backend role-based access control (RBAC)** — centralized permissions and service-layer authorization now protect sensitive operations based on user role and resource ownership.
-- 🔄 **JaCoCo coverage reporting and SonarQube Cloud analysis** — planned for audit tooling
+- ✅ **JaCoCo test coverage reporting** — Maven-integrated coverage reporting is configured to measure automated test coverage across the application.
+- 🔄 **SonarQube Cloud static analysis** — planned as the next pre-audit analysis tool.
 
 > The current IAS2 branch is intentionally being developed and tested in stages before the formal security audit.
 
