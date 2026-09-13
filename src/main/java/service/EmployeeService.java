@@ -4,6 +4,8 @@ import dao.EmployeeDAO;
 import daoimpl.EmployeeDAOImpl;
 import pojo.Employee;
 import db.DatabaseConnection;
+import util.AuthorizationService;
+import util.Permission;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,6 +24,11 @@ public class EmployeeService {
     }
 
     public Employee getEmployeeByID(int employeeID) {
+        AuthorizationService.requireSelfEmployeeOr(
+                employeeID,
+                Permission.VIEW_ALL_EMPLOYEES
+        );
+
         String query =
             "SELECT e.*, " +
             "       p.position, " +
@@ -102,6 +109,11 @@ public class EmployeeService {
     }
 
     public Employee getEmployeeByUserID(String userID) {
+        AuthorizationService.requireSelfUserOr(
+                userID,
+                Permission.VIEW_ALL_EMPLOYEES
+        );
+
         try {
             return employeeDAO.getEmployeeByUserID(userID);
         } catch (SQLException e) {
@@ -110,6 +122,10 @@ public class EmployeeService {
     }
 
     public List<Employee> getAllEmployees() {
+        AuthorizationService.requirePermission(
+                Permission.VIEW_ALL_EMPLOYEES
+        );
+
         try {
             return employeeDAO.getAllEmployees();
         } catch (SQLException e) {
@@ -118,6 +134,10 @@ public class EmployeeService {
     }
 
     public void addEmployee(Employee employee) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_EMPLOYEES
+        );
+
         try {
             employeeDAO.addEmployee(employee);
         } catch (SQLException e) {
@@ -126,6 +146,15 @@ public class EmployeeService {
     }
 
     public void updateEmployee(Employee employee) {
+        if (employee == null) {
+            throw new IllegalArgumentException("Employee must not be null.");
+        }
+
+        AuthorizationService.requireSelfEmployeeOr(
+                employee.getEmployeeID(),
+                Permission.MANAGE_EMPLOYEES
+        );
+
         try {
             employeeDAO.updateEmployee(employee);
         } catch (SQLException e) {
@@ -134,6 +163,10 @@ public class EmployeeService {
     }
 
     public void deleteEmployee(int employeeID) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_EMPLOYEES
+        );
+
         try {
             employeeDAO.deleteEmployee(employeeID);
         } catch (SQLException e) {
@@ -156,6 +189,10 @@ public class EmployeeService {
     }
 
     public List<Object[]> getAllEmployeeRecords(String filterStatus) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_EMPLOYEES
+        );
+
         String sql =
             "SELECT\n" +
             "  e.employeeID,\n" +

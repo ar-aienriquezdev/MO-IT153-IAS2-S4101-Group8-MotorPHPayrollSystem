@@ -6,6 +6,9 @@ import service.UserService;
 import util.LightButton;
 import util.BlueButton;
 import util.SessionManager;
+import util.PasswordUtil;
+import util.AuthorizationService;
+import util.Permission;
 import db.DatabaseConnection;
 
 import javax.swing.*;
@@ -231,6 +234,10 @@ public abstract class AbstractEmployeeRegisterPage extends JFrame {
    * UI subclass decides navigation.
    */
   private void doRegister() {
+    AuthorizationService.requirePermission(
+            Permission.MANAGE_EMPLOYEES
+    );
+
     try (Connection c = DatabaseConnection.getInstance().getConnection()) {
       c.setAutoCommit(false);
 
@@ -253,10 +260,31 @@ public abstract class AbstractEmployeeRegisterPage extends JFrame {
                          : "Pending";
 
       // 2) authentication
-      String email        = makeEmail(firstNameField.getText(), lastNameField.getText());
-      String userID       = "U" + nextEmpId;
-      String passwordHash = capitalize(lastNameField.getText()) + "@" + nextEmpId;
-      int    roleID       = roleCombo.getSelectedIndex() + 1;
+      String email =
+        makeEmail(
+                firstNameField.getText(),
+                lastNameField.getText()
+        );
+
+        String userID =
+                "U" + nextEmpId;
+
+        /*
+         * Keep the existing initial-password convention,
+         * but store only its BCrypt representation.
+         */
+        String temporaryPassword =
+                capitalize(lastNameField.getText())
+                + "@"
+                + nextEmpId;
+
+        String passwordHash =
+                PasswordUtil.hash(
+                        temporaryPassword
+                );
+
+        int roleID =
+                roleCombo.getSelectedIndex() + 1;
       try (PreparedStatement p = c.prepareStatement(
              "INSERT INTO authentication(userID,passwordHash,accountStatus,roleID) VALUES(?,?,?,?)"
            )) {

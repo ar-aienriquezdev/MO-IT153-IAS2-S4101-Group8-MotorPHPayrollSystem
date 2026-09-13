@@ -194,9 +194,10 @@ public abstract class AbstractEmployeeRecordsPage extends JFrame {
                                     null, new String[]{"Confirm", "Cancel"}, "Cancel"
                             );
                             if (confirm == 0) {
-                                pojo.User user = userService.getUserByUserID(userID);
-                                user.setAccountStatus("Deactivated");
-                                userService.updateUser(user);
+                                userService.updateAccountStatus(
+                                        userID,
+                                        "Deactivated"
+                                );
                                 reloadAll.run();
                                 JOptionPane.showMessageDialog(AbstractEmployeeRecordsPage.this,
                                         "Employee " + empID + " was deactivated.");

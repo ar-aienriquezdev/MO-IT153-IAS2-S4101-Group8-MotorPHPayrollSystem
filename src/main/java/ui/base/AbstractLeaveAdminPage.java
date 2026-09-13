@@ -182,8 +182,13 @@ public abstract class AbstractLeaveAdminPage extends JFrame {
         if (!"Pending".equals(leaveService.getApprovalStatusName(leave.getApprovalStatusID())))
             return;
 
-        leave.setApprovalStatusID(approve ? 1 : 2);
-        leaveService.updateLeave(leave);
+        int newStatusID = approve ? 1 : 2;
+
+        leaveService.updateApprovalStatus(
+                leave.getLeaveID(),
+                newStatusID
+        );
+
         reloadLeaveTable();
 
         JOptionPane.showMessageDialog(

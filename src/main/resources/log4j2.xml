@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="WARN">
+
+    <Appenders>
+
+        <RollingFile
+                name="AuditFile"
+                fileName="logs/motorph-audit.log"
+                filePattern="logs/motorph-audit-%d{yyyy-MM-dd}-%i.log.gz">
+
+            <PatternLayout
+                    pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level %msg%n"/>
+
+            <Policies>
+
+                <SizeBasedTriggeringPolicy
+                        size="5 MB"/>
+
+            </Policies>
+
+            <DefaultRolloverStrategy
+                    max="5"/>
+
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <Logger
+                name="util.AuditLogger"
+                level="info"
+                additivity="false">
+
+            <AppenderRef ref="AuditFile"/>
+
+        </Logger>
+
+        <Root level="warn"/>
+
+    </Loggers>
+
+</Configuration>

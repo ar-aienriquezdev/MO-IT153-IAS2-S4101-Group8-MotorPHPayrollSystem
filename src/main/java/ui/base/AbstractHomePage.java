@@ -100,8 +100,31 @@ public abstract class AbstractHomePage extends JFrame {
     protected abstract void onProfileLabelClick();
 
     protected void startClock() {
-        clockTimer = new Timer(1000, evt -> {
-            LocalDateTime now = LocalDateTime.now();
+
+    clockTimer = new Timer(
+            1000,
+            evt -> {
+
+                /*
+                 * Stop background activity when this window belongs
+                 * to a session that has already ended or changed.
+                 *
+                 * This prevents disposed/stale Home pages from
+                 * continuing to query protected backend services.
+                 */
+                if (!SessionManager.hasActiveSession()
+                        || SessionManager.getEmployeeID()
+                        != employeeID) {
+
+                    if (clockTimer != null) {
+                        clockTimer.stop();
+                    }
+
+                    return;
+                }
+
+                LocalDateTime now =
+                        LocalDateTime.now();
 
             // update date/time display
             String datePart = now.format(DateTimeFormatter.ofPattern("MMMM dd, yyyy"));
@@ -356,6 +379,25 @@ public abstract class AbstractHomePage extends JFrame {
         });
     }
 
+        /**
+     * Stops the Swing clock timer when the Home page is disposed.
+     *
+     * Without this cleanup, a disposed page can continue firing
+     * timer events and accessing backend services after navigation
+     * or logout.
+     */
+    @Override
+    public void dispose() {
+
+        if (clockTimer != null) {
+
+            clockTimer.stop();
+            clockTimer = null;
+        }
+
+        super.dispose();
+    }
+    
     private String getCurrentTime() {
         return LocalDateTime.now()
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

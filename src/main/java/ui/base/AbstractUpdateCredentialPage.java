@@ -11,6 +11,7 @@ import pojo.Employee;
 import service.UserService;
 import service.EmployeeService;
 import util.SessionManager;
+import util.PasswordUtil;
 
 public abstract class AbstractUpdateCredentialPage extends JFrame {
     protected UserService userService;
@@ -109,10 +110,19 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
     }
 
     protected boolean validateCurrentPassword() {
-        return Arrays.equals(
-            passwordCurrentField.getPassword(),
-            currentUser.getPassword().toCharArray()
-        );
+
+    String plaintextCurrentPassword =
+            new String(
+                    passwordCurrentField.getPassword()
+            );
+
+    String storedHash =
+            currentUser.getPassword();
+
+    return PasswordUtil.verify(
+            plaintextCurrentPassword,
+            storedHash
+            );
     }
 
     protected boolean validateNewPasswordStrength(String pw) {
@@ -209,10 +219,16 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
         if (r != JOptionPane.YES_OPTION) return;
 
         String newPw = new String(passwordNewField.getPassword());
-        currentUser.setPassword(newPw);
 
         try {
-            userService.updateUser(currentUser);
+            userService.updateOwnPassword(newPw);
+
+            // Reload the account so a second password change on the same
+            // screen validates against the newly stored BCrypt hash.
+            currentUser = userService.getUserByUserID(
+                    SessionManager.getUserID()
+            );
+
             JOptionPane.showMessageDialog(this, "Password updated!");
 
             // ─── CLEAR & RESET ───

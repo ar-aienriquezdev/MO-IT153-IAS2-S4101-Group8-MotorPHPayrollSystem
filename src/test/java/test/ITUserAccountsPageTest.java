@@ -8,6 +8,7 @@ import java.awt.event.*;
 
 import ui.PageITUserAccounts;
 import util.FieldAccessTest; // Import helper for field access
+import java.awt.Window;
 
 /**
  * Automated tests for IT User Accounts page.
@@ -36,12 +37,29 @@ public class ITUserAccountsPageTest {
         SwingUtilities.invokeAndWait(() -> page = new PageITUserAccounts());
     }
 
-    /**
-     * Clean up after each test by disposing UI and clearing static session state.
+     /**
+     * Closes all Swing windows created by the current UI test and
+     * clears the authenticated session.
+     *
+     * Some navigation tests create secondary windows such as
+     * PageITEmployeeUpdate. Those windows must also be disposed
+     * so they cannot continue running under a later test's session.
      */
     @AfterEach
     void cleanup() throws Exception {
-        SwingUtilities.invokeAndWait(() -> page.dispose());
+
+        SwingUtilities.invokeAndWait(() -> {
+
+            for (Window window : Window.getWindows()) {
+
+                if (window != null
+                        && window.isDisplayable()) {
+
+                    window.dispose();
+                }
+            }
+        });
+
         util.SessionManager.clearSession();
     }
 
