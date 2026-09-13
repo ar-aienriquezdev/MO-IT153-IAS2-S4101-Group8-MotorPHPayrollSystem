@@ -193,7 +193,11 @@ public abstract class AbstractLoginPage extends JFrame {
         case "active" -> {
           // success! set session, greet, route
           int empId = svc.getEmployeeIDByUserID(user.getUserID());
-          SessionManager.setSession(user.getUserID(), empId);
+          SessionManager.setSession(
+                  user.getUserID(),
+                  empId,
+                  user.getUserRole()
+          );
           JOptionPane.showMessageDialog(
             this,
             "Welcome, " + user.getUsername() + "!",

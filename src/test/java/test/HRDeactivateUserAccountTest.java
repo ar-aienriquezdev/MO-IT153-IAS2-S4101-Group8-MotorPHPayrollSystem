@@ -26,12 +26,16 @@ public class HRDeactivateUserAccountTest {
         // 1. Ensure user is Active before test
         User user = userService.getUserByUserID(TARGET_USER_ID);
         assertNotNull(user, "User with ID " + TARGET_USER_ID + " should exist in the system.");
-        user.setAccountStatus("Active");
-        userService.updateUser(user);
+        userService.updateAccountStatus(
+                TARGET_USER_ID,
+                "Active"
+        );
 
         // 2. Deactivate user as HR
-        user.setAccountStatus("Deactivated");
-        userService.updateUser(user);
+        userService.updateAccountStatus(
+                TARGET_USER_ID,
+                "Deactivated"
+        );
 
         // 3. Fetch again and check status
         User updated = userService.getUserByUserID(TARGET_USER_ID);
@@ -47,8 +51,10 @@ public class HRDeactivateUserAccountTest {
         // Optional: reset status back to Active for further testing
         User user = userService.getUserByUserID(TARGET_USER_ID);
         if (user != null && !"Active".equals(user.getAccountStatus())) {
-            user.setAccountStatus("Active");
-            userService.updateUser(user);
+            userService.updateAccountStatus(
+                    TARGET_USER_ID,
+                    "Active"
+            );
         }
         SessionManager.clearSession();
     }

@@ -307,13 +307,7 @@ public abstract class AbstractITUserAccountsPage extends JFrame {
      * DRY: All account status updates in one place.
      */
     protected void updateAccountStatus(String userID, String newStatus) {
-        User user = userService.getUserByUserID(userID);
-        if (user == null) {
-            JOptionPane.showMessageDialog(this, "User not found.");
-            return;
-        }
-        user.setAccountStatus(newStatus);
-        userService.updateUser(user);
+        userService.updateAccountStatus(userID, newStatus);
     }
 
     /**

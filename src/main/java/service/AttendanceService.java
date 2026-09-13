@@ -8,6 +8,8 @@ import java.sql.*;
 import java.util.List;
 
 import db.DatabaseConnection;
+import util.AuthorizationService;
+import util.Permission;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -26,13 +28,29 @@ public class AttendanceService {
 
     public Attendance getAttendanceByID(int attendanceID) {
         try {
-            return attendanceDAO.getAttendanceByID(attendanceID);
+            Attendance attendance = attendanceDAO.getAttendanceByID(attendanceID);
+
+            if (attendance != null) {
+                AuthorizationService.requireSelfEmployeeOr(
+                        attendance.getEmployeeID(),
+                        Permission.VIEW_ALL_ATTENDANCE
+                );
+            } else {
+                AuthorizationService.requireAuthenticated();
+            }
+
+            return attendance;
         } catch (SQLException e) {
             throw new RuntimeException("Error retrieving attendance by ID", e);
         }
     }
 
     public List<Attendance> getAttendanceByEmployeeID(int employeeID) {
+        AuthorizationService.requireSelfEmployeeOr(
+                employeeID,
+                Permission.VIEW_ALL_ATTENDANCE
+        );
+
         try {
             return attendanceDAO.getAttendanceByEmployeeID(employeeID);
         } catch (SQLException e) {
@@ -41,6 +59,10 @@ public class AttendanceService {
     }
 
     public List<Attendance> getAttendanceByDate(Date date) {
+        AuthorizationService.requirePermission(
+                Permission.VIEW_ALL_ATTENDANCE
+        );
+
         try {
             return attendanceDAO.getAttendanceByDate(date);
         } catch (SQLException e) {
@@ -49,6 +71,10 @@ public class AttendanceService {
     }
 
     public List<Attendance> getAllAttendance() {
+        AuthorizationService.requirePermission(
+                Permission.VIEW_ALL_ATTENDANCE
+        );
+
         try {
             return attendanceDAO.getAllAttendance();
         } catch (SQLException e) {
@@ -57,6 +83,10 @@ public class AttendanceService {
     }
 
     public void addAttendance(Attendance attendance) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_ATTENDANCE
+        );
+
         try {
             attendanceDAO.addAttendance(attendance);
         } catch (SQLException e) {
@@ -65,6 +95,10 @@ public class AttendanceService {
     }
 
     public void updateAttendance(Attendance attendance) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_ATTENDANCE
+        );
+
         try {
             attendanceDAO.updateAttendance(attendance);
         } catch (SQLException e) {
@@ -73,6 +107,10 @@ public class AttendanceService {
     }
 
     public void deleteAttendance(int attendanceID) {
+        AuthorizationService.requirePermission(
+                Permission.MANAGE_ATTENDANCE
+        );
+
         try {
             attendanceDAO.deleteAttendance(attendanceID);
         } catch (SQLException e) {
@@ -83,6 +121,8 @@ public class AttendanceService {
     // Clock-in and clock out
 
     public boolean clockIn(int employeeID) throws SQLException {
+        AuthorizationService.requireSelfEmployee(employeeID);
+
         String sql = 
             "INSERT INTO attendance (employeeID, date, logIn) " +
             "VALUES (?, CURRENT_DATE, CURRENT_TIME)";
@@ -94,6 +134,8 @@ public class AttendanceService {
     }
 
     public boolean clockOut(int employeeID) throws SQLException {
+        AuthorizationService.requireSelfEmployee(employeeID);
+
         // now also calculate workedHours in decimal hours to 2dp
         String sql =
             "UPDATE attendance SET " +
@@ -131,6 +173,8 @@ public class AttendanceService {
     }
 
     public AttendanceStatus getTodayAttendanceStatus(int employeeID) throws SQLException {
+        AuthorizationService.requireSelfEmployee(employeeID);
+
         AttendanceStatus status = new AttendanceStatus();
 
         String sql =
@@ -178,6 +222,8 @@ public class AttendanceService {
     
     // For displaying WorkedHours per month in Home Dashboard
     public BigDecimal getMonthlyWorkedHours(int employeeID, int year, int month) throws SQLException {
+        AuthorizationService.requireSelfEmployee(employeeID);
+
         String sql =
             "SELECT COALESCE(SUM(workedHours),0) AS total " +
             "FROM attendance " +
@@ -204,6 +250,8 @@ public class AttendanceService {
     public boolean autoClockOutForDate(int employeeID, LocalDate date, LocalTime cutoff)
         throws SQLException
     {
+        AuthorizationService.requireSelfEmployee(employeeID);
+
         String sql =
           "UPDATE attendance SET "
         + "  logOut = ?, "

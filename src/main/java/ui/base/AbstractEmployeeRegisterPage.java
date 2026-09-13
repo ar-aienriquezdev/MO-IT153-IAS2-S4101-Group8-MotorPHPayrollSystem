@@ -7,6 +7,8 @@ import util.LightButton;
 import util.BlueButton;
 import util.SessionManager;
 import util.PasswordUtil;
+import util.AuthorizationService;
+import util.Permission;
 import db.DatabaseConnection;
 
 import javax.swing.*;
@@ -232,6 +234,10 @@ public abstract class AbstractEmployeeRegisterPage extends JFrame {
    * UI subclass decides navigation.
    */
   private void doRegister() {
+    AuthorizationService.requirePermission(
+            Permission.MANAGE_EMPLOYEES
+    );
+
     try (Connection c = DatabaseConnection.getInstance().getConnection()) {
       c.setAutoCommit(false);
 

@@ -29,7 +29,7 @@ The current pre-audit implementation includes:
 - ✅ **Structured authentication audit logging** to MySQL and local Log4j2 audit files
 - ✅ **Environment-based database credential configuration** so database usernames and passwords are not stored in Java source code
 - ✅ **PreparedStatement-based SQL access** throughout the DAO layer
-- 🔄 **Backend role-based access control (RBAC)** — planned for the next pre-audit implementation step
+- ✅ **Backend role-based access control (RBAC)** — centralized permissions and service-layer authorization now protect sensitive operations based on user role and resource ownership.
 - 🔄 **JaCoCo coverage reporting and SonarQube Cloud analysis** — planned for audit tooling
 
 > The current IAS2 branch is intentionally being developed and tested in stages before the formal security audit.
