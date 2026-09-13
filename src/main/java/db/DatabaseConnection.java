@@ -6,32 +6,91 @@ import java.sql.SQLException;
 
 public class DatabaseConnection {
 
-    private static final String URL      = "jdbc:mysql://localhost:3306/payrollsystem_db";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "";
+    private static final String DEFAULT_URL =
+            "jdbc:mysql://localhost:3306/payrollsystem_db";
 
     private static DatabaseConnection instance;
 
     private DatabaseConnection() {
-        // no longer holds a persistent Connection
     }
 
     public static synchronized DatabaseConnection getInstance() {
+
         if (instance == null) {
             instance = new DatabaseConnection();
         }
+
         return instance;
     }
 
-    /** 
-     * Returns a brand-new Connection each time. 
-     * Closing it in your DAO / service code won't break anybody else. 
-     */
     public Connection getConnection() {
-        try {
-            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException("Error establishing database connection", e);
+
+        String url =
+                firstDefined(
+                        System.getProperty("db.url"),
+                        System.getenv("DB_URL"),
+                        DEFAULT_URL
+                );
+
+        String user =
+                firstDefined(
+                        System.getProperty("db.user"),
+                        System.getenv("DB_USER"),
+                        null
+                );
+
+        String password =
+                firstDefined(
+                        System.getProperty("db.pass"),
+                        System.getenv("DB_PASS"),
+                        null
+                );
+
+        if (user == null || user.isBlank()) {
+            throw new IllegalStateException(
+                    "Database username is not configured. "
+                    + "Set DB_USER or the db.user system property."
+            );
         }
+
+        if (password == null || password.isBlank()) {
+            throw new IllegalStateException(
+                    "Database password is not configured. "
+                    + "Set DB_PASS or the db.pass system property."
+            );
+        }
+
+        try {
+
+            return DriverManager.getConnection(
+                    url,
+                    user,
+                    password
+            );
+
+        } catch (SQLException ex) {
+
+            throw new RuntimeException(
+                    "Error establishing database connection",
+                    ex
+            );
+        }
+    }
+
+    private static String firstDefined(
+            String first,
+            String second,
+            String fallback
+    ) {
+
+        if (first != null && !first.isBlank()) {
+            return first;
+        }
+
+        if (second != null && !second.isBlank()) {
+            return second;
+        }
+
+        return fallback;
     }
 }
