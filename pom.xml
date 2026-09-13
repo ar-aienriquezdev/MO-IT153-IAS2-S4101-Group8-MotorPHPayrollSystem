@@ -6,7 +6,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>motorph</groupId>
-    <artifactId>MO-IT113-Group-9</artifactId>
+    <artifactId>MO-IT153-S4101-Group-8</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
@@ -95,5 +95,5 @@
         </dependency>
     </dependencies>
 
-    <name>MO-IT113-Group-9</name>
+    <name>MO-IT153-S4101-Group8-MotorPHPayrollSystem</name>
 </project>
