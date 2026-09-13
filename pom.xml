@@ -11,7 +11,11 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
+    <!-- =========================================================
+         Project, JaCoCo, and SonarQube Cloud Configuration
+         ========================================================= -->
     <properties>
+
         <project.build.sourceEncoding>
             UTF-8
         </project.build.sourceEncoding>
@@ -24,27 +28,71 @@
             main.Main
         </exec.mainClass>
 
-        <!-- JaCoCo version used for test coverage reporting -->
+        <!-- =====================================================
+             JaCoCo Configuration
+             ===================================================== -->
+
         <jacoco.version>
             0.8.13
         </jacoco.version>
+
+        <!-- =====================================================
+             SonarQube Cloud Project Identification
+             ===================================================== -->
+
+        <sonar.organization>
+            ar-aienriquezdev
+        </sonar.organization>
+
+        <sonar.projectKey>
+            ar-aienriquezdev_MO-IT153-IAS2-S4101-Group8-MotorPHPayrollSystem
+        </sonar.projectKey>
+
+        <!--
+            Import the JaCoCo XML coverage report generated
+            during Maven's verify phase.
+        -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            target/site/jacoco/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+
+        <!--
+            Extend SonarQube analysis to relevant non-Java
+            project files stored at the repository root.
+        -->
+        <sonar.maven.scanAll>
+            true
+        </sonar.maven.scanAll>
+
     </properties>
 
+    <!-- =========================================================
+         Additional Maven Repositories
+         ========================================================= -->
     <repositories>
 
         <repository>
-            <id>jaspersoft-repo</id>
+
+            <id>
+                jaspersoft-repo
+            </id>
+
             <url>
                 https://jaspersoft.jfrog.io/artifactory/third-party-ce-artifacts/
             </url>
+
         </repository>
 
     </repositories>
 
+    <!-- =========================================================
+         Project Dependencies
+         ========================================================= -->
     <dependencies>
 
         <!-- JDBC -->
         <dependency>
+
             <groupId>
                 com.mysql
             </groupId>
@@ -56,10 +104,12 @@
             <version>
                 9.3.0
             </version>
+
         </dependency>
 
         <!-- JasperReports Core -->
         <dependency>
+
             <groupId>
                 net.sf.jasperreports
             </groupId>
@@ -71,10 +121,12 @@
             <version>
                 6.21.3
             </version>
+
         </dependency>
 
         <!-- JasperReports Fonts -->
         <dependency>
+
             <groupId>
                 net.sf.jasperreports
             </groupId>
@@ -86,10 +138,12 @@
             <version>
                 6.21.3
             </version>
+
         </dependency>
 
         <!-- JasperReports Functions -->
         <dependency>
+
             <groupId>
                 net.sf.jasperreports
             </groupId>
@@ -101,6 +155,7 @@
             <version>
                 6.21.3
             </version>
+
         </dependency>
 
         <!--
@@ -108,6 +163,7 @@
             Required for JasperReports PDF export.
         -->
         <dependency>
+
             <groupId>
                 com.github.librepdf
             </groupId>
@@ -119,10 +175,12 @@
             <version>
                 1.3.29
             </version>
+
         </dependency>
 
         <!-- Jakarta Activation API -->
         <dependency>
+
             <groupId>
                 com.sun.activation
             </groupId>
@@ -134,6 +192,7 @@
             <version>
                 2.0.1
             </version>
+
         </dependency>
 
         <!--
@@ -141,6 +200,7 @@
             Required explicitly for modern JDK versions.
         -->
         <dependency>
+
             <groupId>
                 org.glassfish.jaxb
             </groupId>
@@ -152,10 +212,12 @@
             <version>
                 3.0.2
             </version>
+
         </dependency>
 
         <!-- NetBeans AbsoluteLayout -->
         <dependency>
+
             <groupId>
                 org.netbeans.external
             </groupId>
@@ -167,10 +229,12 @@
             <version>
                 RELEASE240
             </version>
+
         </dependency>
 
         <!-- JUnit 5 -->
         <dependency>
+
             <groupId>
                 org.junit.jupiter
             </groupId>
@@ -186,10 +250,12 @@
             <scope>
                 test
             </scope>
+
         </dependency>
 
         <!-- JCalendar -->
         <dependency>
+
             <groupId>
                 com.toedter
             </groupId>
@@ -201,10 +267,12 @@
             <version>
                 1.4
             </version>
+
         </dependency>
 
-        <!-- BCrypt password hashing -->
+        <!-- BCrypt Password Hashing -->
         <dependency>
+
             <groupId>
                 org.mindrot
             </groupId>
@@ -216,10 +284,12 @@
             <version>
                 0.4
             </version>
+
         </dependency>
 
         <!-- Log4j2 API -->
         <dependency>
+
             <groupId>
                 org.apache.logging.log4j
             </groupId>
@@ -231,10 +301,12 @@
             <version>
                 2.23.1
             </version>
+
         </dependency>
 
         <!-- Log4j2 Core -->
         <dependency>
+
             <groupId>
                 org.apache.logging.log4j
             </groupId>
@@ -246,32 +318,22 @@
             <version>
                 2.23.1
             </version>
+
         </dependency>
 
     </dependencies>
 
     <!-- =========================================================
-         Build and Code Coverage Configuration
+         Build, Coverage, and Static Analysis Configuration
          ========================================================= -->
     <build>
 
         <plugins>
 
-            <!--
-                JaCoCo Java Code Coverage
+            <!-- =================================================
+                 JaCoCo Java Code Coverage
+                 ================================================= -->
 
-                prepare-agent:
-                Instruments the application while JUnit tests run
-                so JaCoCo can record which code was executed.
-
-                report:
-                Generates the human-readable HTML coverage report
-                after tests have completed successfully.
-
-                No minimum coverage threshold is enforced at this
-                pre-audit stage. Coverage gaps will instead be
-                evaluated as audit evidence.
-            -->
             <plugin>
 
                 <groupId>
@@ -288,7 +350,10 @@
 
                 <executions>
 
-                    <!-- Attach the JaCoCo agent before tests run -->
+                    <!--
+                        Attach the JaCoCo Java agent before
+                        JUnit tests execute.
+                    -->
                     <execution>
 
                         <id>
@@ -306,8 +371,8 @@
                     </execution>
 
                     <!--
-                        Generate the report during Maven's verify
-                        phase, after the tests have completed.
+                        Generate JaCoCo HTML, XML, and CSV
+                        reports during Maven's verify phase.
                     -->
                     <execution>
 
@@ -330,6 +395,26 @@
                     </execution>
 
                 </executions>
+
+            </plugin>
+
+            <!-- =================================================
+                 SonarQube Cloud Static Analysis
+                 ================================================= -->
+
+            <plugin>
+
+                <groupId>
+                    org.sonarsource.scanner.maven
+                </groupId>
+
+                <artifactId>
+                    sonar-maven-plugin
+                </artifactId>
+
+                <version>
+                    5.5.0.6356
+                </version>
 
             </plugin>
 
