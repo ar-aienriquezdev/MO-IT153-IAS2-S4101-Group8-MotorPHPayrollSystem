@@ -6,12 +6,14 @@ import pojo.Overtime;
 import util.AuthorizationService;
 import util.Permission;
 import util.SessionManager;
+import util.RequestValidationUtil;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class OvertimeService {
 
+    private static final int PENDING_APPROVAL_STATUS_ID = 3;
     private ManageableRequestDAO<Overtime> overtimeDAO;
 
     public OvertimeService() {
@@ -96,6 +98,17 @@ public class OvertimeService {
                 overtime.getEmployeeID()
         );
 
+        /*
+         * IAS2 Control 3:
+         * New employee-submitted overtime requests must always begin in
+         * the backend-controlled Pending state.
+         */
+        overtime.setApprovalStatusID(
+                PENDING_APPROVAL_STATUS_ID
+        );
+
+        RequestValidationUtil.validateOvertimeForCreate(overtime);
+
         try {
             overtimeDAO.addRequest(overtime);
         } catch (SQLException e) {
@@ -171,26 +184,17 @@ public class OvertimeService {
                 overtime.getEmployeeID()
         );
 
+        /*
+         * IAS2 Control 3:
+         * Validate employee-controlled overtime data before persistence.
+         */
+        RequestValidationUtil.validateOvertimeForUpdate(overtime);
+
         try {
             Overtime existing =
                     overtimeDAO.getRequestByID(
                             overtime.getOvertimeID()
                     );
-
-            if (existing == null) {
-                throw new IllegalArgumentException(
-                        "Overtime request not found: "
-                                + overtime.getOvertimeID()
-                );
-            }
-
-            if (existing.getEmployeeID()
-                    != SessionManager.getEmployeeID()) {
-
-                throw new SecurityException(
-                        "Cannot modify another employee's overtime request."
-                );
-            }
 
             overtime.setEmployeeID(
                     existing.getEmployeeID()
