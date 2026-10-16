@@ -126,8 +126,7 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
     }
 
     protected boolean validateNewPasswordStrength(String pw) {
-        // at least 1 lower, 1 upper, 1 digit, 1 non‐alphanumeric, min 8 chars
-        return pw.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$");
+        return PasswordUtil.meetsPolicy(pw);
     }
 
     protected void showError(String msg) {
@@ -192,7 +191,12 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
             return false;
         }
         if (!validateNewPasswordStrength(nw)) {
-            showError("New password too weak.");
+            showError(
+                "Password must be at least "
+                + PasswordUtil.getMinimumPasswordLength()
+                + " characters and include uppercase, lowercase, "
+                + "a number, and a special character."
+            );
             highlightField(passwordNewField);
             return false;
         }
@@ -246,7 +250,19 @@ public abstract class AbstractUpdateCredentialPage extends JFrame {
             isDirty = false;
             updateButton.setEnabled(false);
         } catch (RuntimeException ex) {
-            showError("Failed to update: " + ex.getCause().getMessage());
+
+            String message = ex.getMessage();
+
+            if ((message == null || message.isBlank())
+                    && ex.getCause() != null) {
+                message = ex.getCause().getMessage();
+            }
+
+            if (message == null || message.isBlank()) {
+                message = "Unexpected error while updating password.";
+            }
+
+            showError("Failed to update: " + message);
         }
     }
 

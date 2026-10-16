@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -301,6 +302,95 @@ class SecurityLoginServiceLockoutTest {
                 authenticated
         );
 
+        try (Connection conn =
+                     DatabaseConnection.getInstance().getConnection();
+             PreparedStatement ps =
+                     conn.prepareStatement(
+                             "SELECT failed_attempts, locked_until " +
+                             "FROM authentication " +
+                             "WHERE userID = ?"
+                     )) {
+
+            ps.setString(
+                    1,
+                    fixtureUserId
+            );
+
+            try (ResultSet rs =
+                         ps.executeQuery()) {
+
+                assertTrue(
+                        rs.next()
+                );
+
+                assertEquals(
+                        0,
+                        rs.getInt("failed_attempts")
+                );
+
+                assertNull(
+                        rs.getTimestamp("locked_until")
+                );
+            }
+        }
+    }
+    
+        @Test
+    void expiredLockoutAllowsLoginAndResetsState()
+            throws Exception {
+
+        /*
+         * Simulate an account whose previous lockout window
+         * has already expired.
+         */
+        try (Connection conn =
+                     DatabaseConnection.getInstance().getConnection();
+             PreparedStatement ps =
+                     conn.prepareStatement(
+                             "UPDATE authentication " +
+                             "SET failed_attempts = 5, " +
+                             "locked_until = ? " +
+                             "WHERE userID = ?"
+                     )) {
+
+            ps.setTimestamp(
+                    1,
+                    Timestamp.from(
+                            Instant.now().minus(
+                                    Duration.ofMinutes(1)
+                            )
+                    )
+            );
+
+            ps.setString(
+                    2,
+                    fixtureUserId
+            );
+
+            ps.executeUpdate();
+        }
+
+        LoginService service =
+                new LoginService();
+
+        /*
+         * Because the lockout has expired, a correct password
+         * should now authenticate successfully.
+         */
+        User authenticated =
+                service.login(
+                        fixtureUserId,
+                        TEST_PASSWORD
+                );
+
+        assertNotNull(
+                authenticated
+        );
+
+        /*
+         * Successful authentication after lockout expiry
+         * must leave a clean authentication state.
+         */
         try (Connection conn =
                      DatabaseConnection.getInstance().getConnection();
              PreparedStatement ps =

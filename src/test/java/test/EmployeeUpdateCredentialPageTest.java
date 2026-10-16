@@ -70,65 +70,65 @@ class EmployeeUpdateCredentialPageTest {
         JButton updateButton = getButton(page, "Update");
         assertFalse(updateButton.isEnabled());
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("aA1!aaaa");
+        page.passwordNewField.setText("StrongSecure@Test2026");
         SwingUtilities.invokeAndWait(() -> {});
         assertTrue(updateButton.isEnabled());
     }
 
     @Test void testPasswordRequirement_TooShort() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("aA1!");
-        page.passwordReEnterField.setText("aA1!");
+        page.passwordNewField.setText("Aa1!Short");
+        page.passwordReEnterField.setText("Aa1!Short");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);
-        assertEquals("New password too weak.", page.errorMessageLabel.getText());
+        assertEquals("Password must be at least 15 characters and include uppercase, lowercase, a number, and a special character.", page.errorMessageLabel.getText());
     }
 
     @Test void testPasswordRequirement_NoUppercase() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("aa1!aaaa");
-        page.passwordReEnterField.setText("aa1!aaaa");
+        page.passwordNewField.setText("strongsecure@test2026");
+        page.passwordReEnterField.setText("strongsecure@test2026");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);
-        assertEquals("New password too weak.", page.errorMessageLabel.getText());
+        assertEquals("Password must be at least 15 characters and include uppercase, lowercase, a number, and a special character.", page.errorMessageLabel.getText());
     }
 
     @Test void testPasswordRequirement_NoLowercase() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("AA1!AAAA");
-        page.passwordReEnterField.setText("AA1!AAAA");
+        page.passwordNewField.setText("STRONGSECURE@TEST2026");
+        page.passwordReEnterField.setText("STRONGSECURE@TEST2026");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);
-        assertEquals("New password too weak.", page.errorMessageLabel.getText());
+        assertEquals("Password must be at least 15 characters and include uppercase, lowercase, a number, and a special character.", page.errorMessageLabel.getText());
     }
 
     @Test void testPasswordRequirement_NoDigit() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("Aa!aaaaa");
-        page.passwordReEnterField.setText("Aa!aaaaa");
+        page.passwordNewField.setText("StrongSecure@Testing");
+        page.passwordReEnterField.setText("StrongSecure@Testing");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);
-        assertEquals("New password too weak.", page.errorMessageLabel.getText());
+        assertEquals("Password must be at least 15 characters and include uppercase, lowercase, a number, and a special character.", page.errorMessageLabel.getText());
     }
 
     @Test void testPasswordRequirement_NoSpecialChar() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("Aa1aaaaa");
-        page.passwordReEnterField.setText("Aa1aaaaa");
+        page.passwordNewField.setText("StrongSecureTest2026");
+        page.passwordReEnterField.setText("StrongSecureTest2026");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);
-        assertEquals("New password too weak.", page.errorMessageLabel.getText());
+        assertEquals("Password must be at least 15 characters and include uppercase, lowercase, a number, and a special character.", page.errorMessageLabel.getText());
     }
 
     @Test void testPasswordRequirement_AllValid() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("NewValid1!");
-        page.passwordReEnterField.setText("NewValid1!");
+        page.passwordNewField.setText("StrongSecure@Test2026");
+        page.passwordReEnterField.setText("StrongSecure@Test2026");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertTrue(valid);
@@ -136,8 +136,8 @@ class EmployeeUpdateCredentialPageTest {
 
     @Test void testPasswordMismatch() throws Exception {
         page.passwordCurrentField.setText(CORRECT_PASSWORD);
-        page.passwordNewField.setText("NewValid1!");
-        page.passwordReEnterField.setText("Mismatch1!");
+        page.passwordNewField.setText("StrongSecure@Test2026");
+        page.passwordReEnterField.setText("DifferentSecure@Test2026");
         SwingUtilities.invokeAndWait(() -> {});
         boolean valid = invokeValidateFieldsAndShowErrors();
         assertFalse(valid);

@@ -91,7 +91,6 @@ public class PageManagerEmployeeDataUpdateCredential extends ui.base.AbstractUpd
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("MotorPH Payroll System");
-        setMaximumSize(new java.awt.Dimension(1040, 590));
         setMinimumSize(new java.awt.Dimension(1040, 590));
         setResizable(false);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -171,7 +170,7 @@ public class PageManagerEmployeeDataUpdateCredential extends ui.base.AbstractUpd
         label13.setFont(new java.awt.Font("Inter", 0, 12)); // NOI18N
         label13.setForeground(new java.awt.Color(51, 51, 51));
         label13.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label13.setText("* Must be at least 8 characters long");
+        label13.setText("* Must be at least 15 characters long");
         getContentPane().add(label13, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 410, 420, -1));
 
         label14.setFont(new java.awt.Font("Inter", 0, 12)); // NOI18N
@@ -339,7 +338,7 @@ public class PageManagerEmployeeDataUpdateCredential extends ui.base.AbstractUpd
     private util.LightButton cancelButton;
     private javax.swing.JLabel emailText;
     private javax.swing.JLabel employeeIDText;
-    private javax.swing.JLabel errorMessageLabel;
+    public javax.swing.JLabel errorMessageLabel;
     private javax.swing.JLabel label10;
     private javax.swing.JLabel label11;
     private javax.swing.JLabel label12;
@@ -354,9 +353,9 @@ public class PageManagerEmployeeDataUpdateCredential extends ui.base.AbstractUpd
     private javax.swing.JLabel label7;
     private javax.swing.JLabel label8;
     private javax.swing.JLabel label9;
-    private javax.swing.JPasswordField passwordCurrentField;
-    private javax.swing.JPasswordField passwordNewField;
-    private javax.swing.JPasswordField passwordReEnterField;
+    public javax.swing.JPasswordField passwordCurrentField;
+    public javax.swing.JPasswordField passwordNewField;
+    public javax.swing.JPasswordField passwordReEnterField;
     private javax.swing.JLabel positionText;
     private javax.swing.JLabel supervisorText;
     private util.BlueButton updateButton;
