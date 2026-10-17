@@ -88,6 +88,18 @@
             true
         </sonar.maven.scanAll>
 
+        <!--
+            NetBeans-generated Swing form classes are excluded from coverage
+            measurement only. SonarQube still analyzes these files for
+            reliability, security, maintainability, and duplication.
+            Shared application behavior in ui/base and all backend/security
+            packages remains included in coverage measurement.
+        -->
+        <sonar.coverage.exclusions>
+            src/main/java/ui/Page*.java,
+            src/main/java/util/PasswordBulkMigrate.java
+        </sonar.coverage.exclusions>
+
     </properties>
 
     <!-- =========================================================

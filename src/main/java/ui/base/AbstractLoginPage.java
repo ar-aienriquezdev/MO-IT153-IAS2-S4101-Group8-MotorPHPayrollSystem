@@ -16,6 +16,7 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.sql.Timestamp;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -125,13 +126,16 @@ public abstract class AbstractLoginPage extends JFrame {
             LocalDateTime lockoutEnd =
                     lockedUntil.toLocalDateTime();
 
-            LocalDateTime currentTime =
-                    LocalDateTime.now();
+            Instant currentInstant =
+                    Instant.now();
+
+            Instant lockoutEndInstant =
+                    lockedUntil.toInstant();
 
             long secondsRemaining =
                     Duration.between(
-                            currentTime,
-                            lockoutEnd
+                            currentInstant,
+                            lockoutEndInstant
                     ).getSeconds();
 
             long minutesRemaining =
