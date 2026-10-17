@@ -282,7 +282,7 @@ public abstract class AbstractEmployeeUpdatePage extends AbstractEmployeeRegiste
             );
             return true;
         } catch (Exception ex) {
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
             JOptionPane.showMessageDialog(
                 this,
                 "Failed to update employee: " + ex.getMessage(),
@@ -309,7 +309,7 @@ public abstract class AbstractEmployeeUpdatePage extends AbstractEmployeeRegiste
                 if (rs.next()) return rs.getInt("roleID");
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
         return 1; // default to Employee role
     }

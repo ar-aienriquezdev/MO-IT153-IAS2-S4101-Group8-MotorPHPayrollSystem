@@ -50,7 +50,7 @@ public abstract class AbstractProfilePage extends javax.swing.JFrame {
 
         } catch (Exception ex) {
             javax.swing.JOptionPane.showMessageDialog(this, "Error loading profile: " + ex.getMessage());
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
     }
 

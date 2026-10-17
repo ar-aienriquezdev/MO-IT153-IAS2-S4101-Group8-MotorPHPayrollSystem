@@ -252,7 +252,7 @@ public abstract class AbstractEmployeeRecordsPage extends JFrame {
                     for (var row : rows) m.addRow(row);
                     adjustColumnWidths(table);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    util.ErrorLogger.log(ex);
                 }
             }
         }.execute();
@@ -280,7 +280,7 @@ public abstract class AbstractEmployeeRecordsPage extends JFrame {
                     for (var row : rows) m.addRow(row);
                     adjustColumnWidths(table);
                 } catch (Exception ex) {
-                    ex.printStackTrace();
+                    util.ErrorLogger.log(ex);
                 }
             }
         }.execute();

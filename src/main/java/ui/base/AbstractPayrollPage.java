@@ -205,7 +205,7 @@ public abstract class AbstractPayrollPage extends JFrame {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+                    util.ErrorLogger.log(e);
             JOptionPane.showMessageDialog(parent,
                 "Failed to generate report: " + e.getMessage(),
                 "Print Error", JOptionPane.ERROR_MESSAGE

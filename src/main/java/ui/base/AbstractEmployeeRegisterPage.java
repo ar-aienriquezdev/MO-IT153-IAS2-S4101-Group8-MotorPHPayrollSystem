@@ -384,7 +384,7 @@ public abstract class AbstractEmployeeRegisterPage extends JFrame {
       onRegisterSuccess(); // Let subclass handle navigation after successful register
     }
     catch (Exception ex) {
-      ex.printStackTrace();
+      util.ErrorLogger.log(ex);
       JOptionPane.showMessageDialog(
         this,
         "Failed to create employee: " + ex.getMessage(),
