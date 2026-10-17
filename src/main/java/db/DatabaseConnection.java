@@ -3,11 +3,10 @@ package db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Locale;
+import java.util.Properties;
 
 public class DatabaseConnection {
-
-    private static final String DEFAULT_URL =
-            "jdbc:mysql://localhost:3306/payrollsystem_db";
 
     private static DatabaseConnection instance;
 
@@ -26,52 +25,72 @@ public class DatabaseConnection {
     public Connection getConnection() {
 
         String url =
-                firstDefined(
-                        System.getProperty("db.url"),
-                        System.getenv("DB_URL"),
-                        DEFAULT_URL
-                );
+                requireConfigured(
+                        firstDefined(
+                                System.getProperty("db.url"),
+                                System.getenv("DB_URL")
+                        ),
+                        "Database URL is not configured. "
+                        + "Set DB_URL or the db.url system property."
+                ).trim();
 
         String user =
-                firstDefined(
-                        System.getProperty("db.user"),
-                        System.getenv("DB_USER"),
-                        null
-                );
+                requireConfigured(
+                        firstDefined(
+                                System.getProperty("db.user"),
+                                System.getenv("DB_USER")
+                        ),
+                        "Database username is not configured. "
+                        + "Set DB_USER or the db.user system property."
+                ).trim();
 
         String password =
-                firstDefined(
-                        System.getProperty("db.pass"),
-                        System.getenv("DB_PASS"),
-                        null
+                requireConfigured(
+                        firstDefined(
+                                System.getProperty("db.pass"),
+                                System.getenv("DB_PASS")
+                        ),
+                        "Database password is not configured. "
+                        + "Set DB_PASS or the db.pass system property."
                 );
 
-        if (user == null || user.isBlank()) {
-            throw new IllegalStateException(
-                    "Database username is not configured. "
-                    + "Set DB_USER or the db.user system property."
-            );
-        }
+        validateJdbcUrl(url);
 
-        if (password == null || password.isBlank()) {
-            throw new IllegalStateException(
-                    "Database password is not configured. "
-                    + "Set DB_PASS or the db.pass system property."
-            );
-        }
+        Properties connectionProperties =
+                new Properties();
+
+        connectionProperties.setProperty(
+                "user",
+                user
+        );
+
+        connectionProperties.setProperty(
+                "password",
+                password
+        );
+
+        /*
+         * Control 5:
+         * TLS is required centrally by the application.
+         * Connector/J must not silently fall back to
+         * an unencrypted database connection.
+         */
+        connectionProperties.setProperty(
+                "sslMode",
+                "REQUIRED"
+        );
 
         try {
 
             return DriverManager.getConnection(
                     url,
-                    user,
-                    password
+                    connectionProperties
             );
 
         } catch (SQLException ex) {
 
             throw new RuntimeException(
-                    "Error establishing database connection",
+                    "Error establishing secure database connection",
                     ex
             );
         }
@@ -79,8 +98,7 @@ public class DatabaseConnection {
 
     private static String firstDefined(
             String first,
-            String second,
-            String fallback
+            String second
     ) {
 
         if (first != null && !first.isBlank()) {
@@ -91,6 +109,55 @@ public class DatabaseConnection {
             return second;
         }
 
-        return fallback;
+        return null;
+    }
+
+    private static String requireConfigured(
+            String value,
+            String message
+    ) {
+
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException(message);
+        }
+
+        return value;
+    }
+
+    private static void validateJdbcUrl(
+            String url
+    ) {
+
+        String normalized =
+                url.toLowerCase(Locale.ROOT);
+
+        if (!normalized.startsWith("jdbc:mysql://")) {
+
+            throw new IllegalStateException(
+                    "DB_URL must be a MySQL JDBC URL."
+            );
+        }
+
+        /*
+         * Reject connection-string parameters that could
+         * override the centralized TLS policy.
+         */
+        String[] tlsOverrides = {
+            "sslmode=",
+            "usessl=",
+            "requiressl=",
+            "verifyservercertificate="
+        };
+
+        for (String override : tlsOverrides) {
+
+            if (normalized.contains(override)) {
+
+                throw new IllegalStateException(
+                        "DB_URL must not override TLS settings. "
+                        + "TLS is centrally enforced by DatabaseConnection."
+                );
+            }
+        }
     }
 }
