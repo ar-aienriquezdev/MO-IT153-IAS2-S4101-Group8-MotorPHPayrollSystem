@@ -28,7 +28,7 @@ The quality gate evaluates functional regression, dedicated security regression,
 | Dependency remediation | High-impact findings are remediated or explicitly dispositioned | Initial **5 vulnerable dependencies / 16 vulnerabilities** reduced to **1 / 1** before the documented JasperReports exception | **PASS WITH EXCEPTION** |
 | Final OWASP dependency gate | No unsuppressed Dependency-Check vulnerability remains in the automated gate | **0 vulnerable dependencies; 0 vulnerabilities found; 1 vulnerability suppressed** under `SEC-DEP-001`; build successful | **PASS WITH DOCUMENTED EXCEPTION** |
 | Repository secret scan — working tree | No detected repository secrets | Gitleaks final working-tree scan: **no leaks found** | **PASS** |
-| Repository secret scan — Git history | No detected repository secrets | Gitleaks final history scan: **17 commits scanned; no leaks found** | **PASS** |
+| Repository secret scan — Git history | No detected repository secrets | Gitleaks final history scan: **no leaks found** | **PASS** |
 | Release/debug behavior | Production stack-trace/debug behavior is removed or gated | Production `printStackTrace()` calls removed; centralized `ErrorLogger` used; intentional console output remains only in the controlled migration utility | **PASS** |
 | SonarQube main-branch analysis | Analysis completes successfully from `main` | SonarScanner analysis completed successfully and uploaded results | **PASS** |
 | SonarQube Quality Gate | Configured quality conditions pass | **Quality Gate: Passed — all conditions passed** | **PASS** |
