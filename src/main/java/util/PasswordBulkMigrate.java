@@ -128,7 +128,7 @@ public final class PasswordBulkMigrate {
 
         } catch (Exception ex) {
 
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
 
             throw new RuntimeException(
                     "Unable to migrate legacy passwords.",

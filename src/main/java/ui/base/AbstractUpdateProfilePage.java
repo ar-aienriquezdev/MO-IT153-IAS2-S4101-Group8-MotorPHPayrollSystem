@@ -4,6 +4,8 @@ import pojo.Employee;
 import service.EmployeeService;
 import util.SessionManager;
 import db.DatabaseConnection;
+import util.AuthorizationService;
+import util.Permission;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -282,6 +284,21 @@ public abstract class AbstractUpdateProfilePage extends JFrame {
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
+        
+        /*
+         * IAS2 Control 2:
+         * Explicitly authorize the complete profile-update transaction before
+         * either the employee record or its directly-updated address data reaches
+         * the persistence layer.
+         *
+         * The authenticated employee may update their own profile. A privileged
+         * administrative role may update another employee only when it holds the
+         * MANAGE_EMPLOYEES backend permission.
+         */
+        AuthorizationService.requireSelfEmployeeOr(
+                currentEmployee.getEmployeeID(),
+                Permission.MANAGE_EMPLOYEES
+        );
 
         // flush into POJO
         currentEmployee.setPhoneNo( getPhoneNumberField().getText().trim() );

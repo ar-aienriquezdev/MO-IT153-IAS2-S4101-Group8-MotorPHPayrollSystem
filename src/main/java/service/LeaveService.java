@@ -6,12 +6,15 @@ import pojo.Leave;
 import util.AuthorizationService;
 import util.Permission;
 import util.SessionManager;
+import util.RequestValidationUtil;
+import util.AuditLogger;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public class LeaveService {
 
+    private static final int PENDING_APPROVAL_STATUS_ID = 3;
     private ManageableRequestDAO<Leave> leaveDAO;
 
     public LeaveService() {
@@ -75,17 +78,34 @@ public class LeaveService {
     public void addLeave(Leave leave) {
 
         if (leave == null) {
-            throw new IllegalArgumentException("Leave must not be null.");
+            throw new IllegalArgumentException(
+                    "Leave must not be null."
+            );
         }
 
         AuthorizationService.requireSelfEmployee(
                 leave.getEmployeeID()
         );
 
+        /*
+         * IAS2 Control 3:
+         * New employee-submitted leave requests must always begin in the
+         * backend-controlled Pending state. A crafted request cannot
+         * self-approve or self-reject by supplying another status ID.
+         */
+        leave.setApprovalStatusID(
+                PENDING_APPROVAL_STATUS_ID
+        );
+
+        RequestValidationUtil.validateLeaveForCreate(leave);
+
         try {
             leaveDAO.addRequest(leave);
         } catch (SQLException e) {
-            throw new RuntimeException("Error adding leave request", e);
+            throw new RuntimeException(
+                    "Error adding leave request",
+                    e
+            );
         }
     }
 
@@ -106,6 +126,22 @@ public class LeaveService {
                     leaveID,
                     approvalStatusID
             );
+            
+            String action = switch (approvalStatusID) {
+                case 1 -> "LEAVE_APPROVED";
+                case 2 -> "LEAVE_REJECTED";
+                default -> "LEAVE_STATUS_CHANGED";
+            };
+
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    action,
+                    "target=leave:" + leaveID
+                            + "; result=SUCCESS"
+                            + "; new_status_id=" + approvalStatusID,
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error updating approval status of leave",
@@ -168,33 +204,26 @@ public class LeaveService {
     public void updateLeave(Leave leave) {
 
         if (leave == null) {
-            throw new IllegalArgumentException("Leave must not be null.");
+            throw new IllegalArgumentException(
+                    "Leave must not be null."
+            );
         }
 
         AuthorizationService.requireSelfEmployee(
                 leave.getEmployeeID()
         );
 
+        /*
+         * IAS2 Control 3:
+         * Validate employee-controlled business data before persistence.
+         */
+        RequestValidationUtil.validateLeaveForUpdate(leave);
+
         try {
             Leave existing =
                     leaveDAO.getRequestByID(
                             leave.getLeaveID()
                     );
-
-            if (existing == null) {
-                throw new IllegalArgumentException(
-                        "Leave request not found: "
-                                + leave.getLeaveID()
-                );
-            }
-
-            if (existing.getEmployeeID()
-                    != SessionManager.getEmployeeID()) {
-
-                throw new SecurityException(
-                        "Cannot modify another employee's leave request."
-                );
-            }
 
             // Preserve backend-controlled ownership and approval state.
             leave.setEmployeeID(

@@ -71,7 +71,7 @@ public abstract class AbstractHomePage extends JFrame {
                 "Error",
                 JOptionPane.ERROR_MESSAGE
             );
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
     }
 
@@ -141,7 +141,9 @@ public abstract class AbstractHomePage extends JFrame {
                 LocalDate today = now.toLocalDate();
                 if (!today.equals(lastAutoDate)) {
                     try { autoClockOutYesterday(); }
-                    catch (Exception e) { e.printStackTrace(); }
+                    catch (Exception e) {
+                        util.ErrorLogger.log(e);
+                    }
                     lastAutoDate = today;
                     refreshClockInOutStatus();
                 }
@@ -217,7 +219,7 @@ public abstract class AbstractHomePage extends JFrame {
             JOptionPane.showMessageDialog(this,
               "Error during Clock-In: " + ex.getMessage(),
               "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
     }
 
@@ -255,7 +257,7 @@ public abstract class AbstractHomePage extends JFrame {
             JOptionPane.showMessageDialog(this,
               "Error during Clock-Out: " + ex.getMessage(),
               "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
     }
 
@@ -294,7 +296,7 @@ public abstract class AbstractHomePage extends JFrame {
             JOptionPane.showMessageDialog(this,
               "Error refreshing attendance status: " + ex.getMessage(),
               "Error", JOptionPane.ERROR_MESSAGE);
-            ex.printStackTrace();
+            util.ErrorLogger.log(ex);
         }
     }
 

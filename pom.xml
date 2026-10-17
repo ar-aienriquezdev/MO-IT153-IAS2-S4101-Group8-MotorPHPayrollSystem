@@ -37,6 +37,30 @@
         </jacoco.version>
 
         <!-- =====================================================
+             OWASP Dependency-Check Configuration
+             ===================================================== -->
+
+        <dependency.check.version>
+            13.0.0
+        </dependency.check.version>
+
+        <!-- =====================================================
+             Security Remediation Dependency Versions
+             ===================================================== -->
+
+        <jasperreports.version>
+            6.21.5
+        </jasperreports.version>
+
+        <jackson.version>
+            2.18.11
+        </jackson.version>
+
+        <log4j.version>
+            2.25.5
+        </log4j.version>
+
+        <!-- =====================================================
              SonarQube Cloud Project Identification
              ===================================================== -->
 
@@ -86,6 +110,41 @@
     </repositories>
 
     <!-- =========================================================
+         Jackson Dependency Management
+         ========================================================= -->
+    <dependencyManagement>
+
+        <dependencies>
+
+            <dependency>
+
+                <groupId>
+                    com.fasterxml.jackson
+                </groupId>
+
+                <artifactId>
+                    jackson-bom
+                </artifactId>
+
+                <version>
+                    ${jackson.version}
+                </version>
+
+                <type>
+                    pom
+                </type>
+
+                <scope>
+                    import
+                </scope>
+
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+    <!-- =========================================================
          Project Dependencies
          ========================================================= -->
     <dependencies>
@@ -119,7 +178,7 @@
             </artifactId>
 
             <version>
-                6.21.3
+                ${jasperreports.version}
             </version>
 
         </dependency>
@@ -136,7 +195,7 @@
             </artifactId>
 
             <version>
-                6.21.3
+                ${jasperreports.version}
             </version>
 
         </dependency>
@@ -153,7 +212,7 @@
             </artifactId>
 
             <version>
-                6.21.3
+                ${jasperreports.version}
             </version>
 
         </dependency>
@@ -299,7 +358,7 @@
             </artifactId>
 
             <version>
-                2.23.1
+                ${log4j.version}
             </version>
 
         </dependency>
@@ -316,7 +375,7 @@
             </artifactId>
 
             <version>
-                2.23.1
+                ${log4j.version}
             </version>
 
         </dependency>
@@ -399,6 +458,97 @@
             </plugin>
 
             <!-- =================================================
+                 OWASP Dependency-Check
+                 ================================================= -->
+
+            <plugin>
+
+                <groupId>
+                    org.owasp
+                </groupId>
+
+                <artifactId>
+                    dependency-check-maven
+                </artifactId>
+
+                <version>
+                    ${dependency.check.version}
+                </version>
+
+                <configuration>
+
+                    <!--
+                        Generate evidence in multiple machine- and
+                        human-readable formats.
+                    -->
+                    <format>
+                        ALL
+                    </format>
+
+                    <!--
+                        Treat High and Critical dependency findings
+                        as release-blocking unless they are remediated
+                        or formally documented as an exception.
+                    -->
+                    <failBuildOnCVSS>
+                        7.0
+                    </failBuildOnCVSS>
+
+                    <outputDirectory>
+                        ${project.build.directory}/dependency-check
+                    </outputDirectory>
+
+                    <!--
+                        Read the NVD API key from the local environment.
+                        Only the environment-variable name is stored in Git;
+                        the key itself must never be committed.
+                    -->
+                    <nvdApiKeyEnvironmentVariable>
+                        NVD_API_KEY
+                    </nvdApiKeyEnvironmentVariable>
+
+                    <suppressionFiles>
+
+                        <suppressionFile>
+                            ${project.basedir}/docs/security/dependency-check-suppressions.xml
+                        </suppressionFile>
+
+                    </suppressionFiles>
+
+                    <failBuildOnUnusedSuppressionRule>
+                        true
+                    </failBuildOnUnusedSuppressionRule>
+
+                </configuration>
+
+                <executions>
+
+                    <execution>
+
+                        <id>
+                            dependency-security-check
+                        </id>
+
+                        <phase>
+                            verify
+                        </phase>
+
+                        <goals>
+
+                            <goal>
+                                check
+                            </goal>
+
+                        </goals>
+
+                    </execution>
+
+                </executions>
+
+            </plugin>
+
+
+            <!-- =================================================
                  SonarQube Cloud Static Analysis
                  ================================================= -->
 
@@ -421,6 +571,62 @@
         </plugins>
 
     </build>
+
+
+    <!-- =========================================================
+         Dedicated Security Regression Test Profile
+         ========================================================= -->
+    <profiles>
+
+        <profile>
+
+            <id>
+                security-regression
+            </id>
+
+            <build>
+
+                <plugins>
+
+                    <plugin>
+
+                        <groupId>
+                            org.apache.maven.plugins
+                        </groupId>
+
+                        <artifactId>
+                            maven-surefire-plugin
+                        </artifactId>
+
+                        <version>
+                            3.2.5
+                        </version>
+
+                        <configuration>
+
+                            <includes>
+
+                                <include>
+                                    **/Security*Test.java
+                                </include>
+
+                            </includes>
+
+                            <failIfNoTests>
+                                true
+                            </failIfNoTests>
+
+                        </configuration>
+
+                    </plugin>
+
+                </plugins>
+
+            </build>
+
+        </profile>
+
+    </profiles>
 
     <name>
         MO-IT153-S4101-Group8-MotorPHPayrollSystem

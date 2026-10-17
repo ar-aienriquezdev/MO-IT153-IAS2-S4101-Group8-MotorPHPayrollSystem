@@ -122,4 +122,97 @@ class SecurityPasswordUtilTest {
                 )
         );
     }
+    
+    @Test
+void strongPasswordMeetsCentralizedPolicy() {
+
+    assertTrue(
+            PasswordUtil.meetsPolicy(
+                    "StrongSecure@Test2026"
+            )
+    );
+    }
+
+    @Test
+    void passwordBelowMinimumLengthFailsPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(
+                        "Aa1!Short"
+                )
+        );
+    }
+
+    @Test
+    void passwordWithoutUppercaseFailsPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(
+                        "strongsecure@test2026"
+                )
+        );
+    }
+
+    @Test
+    void passwordWithoutLowercaseFailsPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(
+                        "STRONGSECURE@TEST2026"
+                )
+        );
+    }
+
+    @Test
+    void passwordWithoutDigitFailsPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(
+                        "StrongSecure@Testing"
+                )
+        );
+    }
+
+    @Test
+    void passwordWithoutSpecialCharacterFailsPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(
+                        "StrongSecureTest2026"
+                )
+        );
+    }
+
+    @Test
+    void nullAndBlankPasswordsFailPolicy() {
+
+        assertFalse(
+                PasswordUtil.meetsPolicy(null)
+        );
+
+        assertFalse(
+                PasswordUtil.meetsPolicy("")
+        );
+
+        assertFalse(
+                PasswordUtil.meetsPolicy("              ")
+        );
+    }
+
+    @Test
+    void validatePolicyRejectsWeakPassword() {
+
+        IllegalArgumentException exception =
+                assertThrows(
+                        IllegalArgumentException.class,
+                        () -> PasswordUtil.validatePolicy(
+                                "Weak1!"
+                        )
+                );
+
+        assertTrue(
+                exception.getMessage()
+                        .contains("at least 15")
+        );
+    }
 }

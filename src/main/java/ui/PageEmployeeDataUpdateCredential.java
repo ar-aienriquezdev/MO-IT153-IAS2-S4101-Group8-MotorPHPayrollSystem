@@ -170,7 +170,7 @@ public class PageEmployeeDataUpdateCredential extends ui.base.AbstractUpdateCred
         label13.setFont(new java.awt.Font("Inter", 0, 12)); // NOI18N
         label13.setForeground(new java.awt.Color(51, 51, 51));
         label13.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        label13.setText("* Must be at least 8 characters long");
+        label13.setText("* Must be at least 15 characters long");
         getContentPane().add(label13, new org.netbeans.lib.awtextra.AbsoluteConstraints(500, 410, 420, -1));
 
         label14.setFont(new java.awt.Font("Inter", 0, 12)); // NOI18N

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.4.xsd
+                                  https://dependency-check.github.io/DependencyCheck/dependency-suppression.1.4.xsd">
+
+    <suppress>
+        <notes><![CDATA[
+SEC-DEP-001 — Temporary documented residual-risk exception.
+
+This rule applies only to CVE-2025-10492 on
+net.sf.jasperreports:jasperreports:6.21.5.
+
+The vulnerability is NOT considered remediated. The original unsuppressed
+Dependency-Check reports are retained as evidence. See:
+docs/security/DEPENDENCY-EXCEPTIONS.md
+        ]]></notes>
+        <gav>net.sf.jasperreports:jasperreports:6.21.5</gav>
+        <cve>CVE-2025-10492</cve>
+    </suppress>
+
+</suppressions>

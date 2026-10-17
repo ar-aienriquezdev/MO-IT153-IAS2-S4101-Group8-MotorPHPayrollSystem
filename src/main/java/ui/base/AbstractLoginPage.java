@@ -252,7 +252,7 @@ public abstract class AbstractLoginPage extends JFrame {
         "Error",
         JOptionPane.ERROR_MESSAGE
       );
-      ex.printStackTrace();
+      util.ErrorLogger.log(ex);
     }
   }
 }

@@ -7,6 +7,7 @@ import util.AuthorizationService;
 import util.PasswordUtil;
 import util.Permission;
 import util.SessionManager;
+import util.AuditLogger;
 
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
@@ -103,6 +104,9 @@ public class UserService {
 
     /**
      * Full user-account creation is restricted to IT.
+     *
+     * Any plaintext password supplied during account creation must satisfy
+     * the centralized strong-password policy before it is hashed.
      */
     public void addUser(User user) {
 
@@ -110,10 +114,19 @@ public class UserService {
                 Permission.MANAGE_USER_ACCOUNTS
         );
 
-        ensurePasswordIsHashed(user);
+        ensurePasswordIsSecurelyPrepared(user);
 
         try {
             userDAO.addUser(user);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_CREATED",
+                    "target=user:" + user.getUserID()
+                            + "; result=SUCCESS",
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error adding user",
@@ -126,6 +139,9 @@ public class UserService {
      * Full account update can change password, role, and status, so it is
      * restricted to IT. Self-service password changes and HR status changes
      * use narrower methods below.
+     *
+     * If a plaintext password is supplied through this path, it must satisfy
+     * the centralized password policy before hashing and persistence.
      */
     public void updateUser(User user) {
 
@@ -133,23 +149,29 @@ public class UserService {
                 Permission.MANAGE_USER_ACCOUNTS
         );
 
-        ensurePasswordIsHashed(user);
+        ensurePasswordIsSecurelyPrepared(user);
         performUserUpdate(user);
+        
+        AuditLogger.log(
+                SessionManager.getUserID(),
+                "USER_ACCOUNT_UPDATED",
+                "target=user:" + user.getUserID()
+                        + "; result=SUCCESS",
+                null
+        );
     }
 
     /**
-     * Updates only the currently authenticated user's password. The caller
-     * cannot use this method to change their own role or account status.
+     * Updates only the currently authenticated user's password.
+     *
+     * Password strength is enforced here at the service layer so the
+     * security policy cannot be bypassed by avoiding the Swing UI.
      */
     public void updateOwnPassword(String plaintextPassword) {
 
         AuthorizationService.requireAuthenticated();
 
-        if (plaintextPassword == null || plaintextPassword.isBlank()) {
-            throw new IllegalArgumentException(
-                    "New password must not be null or blank."
-            );
-        }
+        PasswordUtil.validatePolicy(plaintextPassword);
 
         String currentUserID =
                 SessionManager.getUserID();
@@ -164,11 +186,32 @@ public class UserService {
                 );
             }
 
+            /*
+             * Prevent direct service callers from reusing the exact
+             * current password even if they bypass the UI validation.
+             */
+            if (PasswordUtil.verify(
+                    plaintextPassword,
+                    currentUser.getPassword()
+            )) {
+                throw new IllegalArgumentException(
+                        "New password must differ from the current password."
+                );
+            }
+
             currentUser.setPassword(
                     PasswordUtil.hash(plaintextPassword)
             );
 
             performUserUpdate(currentUser);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "PASSWORD_CHANGED",
+                    "target=user:" + SessionManager.getUserID()
+                            + "; result=SUCCESS",
+                    null
+            );
 
         } catch (SQLException e) {
             throw new RuntimeException(
@@ -219,6 +262,15 @@ public class UserService {
             user.setAccountStatus(canonicalStatus);
 
             performUserUpdate(user);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_STATUS_CHANGED",
+                    "target=user:" + userID
+                            + "; result=SUCCESS"
+                            + "; new_status=" + canonicalStatus,
+                    null
+            );
 
         } catch (SQLException e) {
             throw new RuntimeException(
@@ -237,6 +289,15 @@ public class UserService {
 
         try {
             userDAO.deleteUser(userID);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_DELETED",
+                    "target=user:" + userID
+                            + "; result=SUCCESS",
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error deleting user",
@@ -285,8 +346,17 @@ public class UserService {
         }
     }
 
-    /** Make sure passwords sent through full account administration are hashed. */
-    private void ensurePasswordIsHashed(User user) {
+    /**
+     * Ensures that passwords entering full account-administration paths
+     * are securely prepared before persistence.
+     *
+     * Existing BCrypt hashes are preserved because these may represent
+     * already-secured credentials during non-password account updates.
+     *
+     * Any plaintext password represents a newly supplied credential and
+     * therefore must satisfy the current password policy before hashing.
+     */
+    private void ensurePasswordIsSecurelyPrepared(User user) {
 
         if (user == null) {
             throw new IllegalArgumentException(
@@ -303,10 +373,23 @@ public class UserService {
             );
         }
 
-        if (!PasswordUtil.isHash(password)) {
-            user.setPassword(
-                    PasswordUtil.hash(password)
-            );
+        /*
+         * If this is already a BCrypt hash, retain it unchanged.
+         * This is important when IT updates another account attribute
+         * without changing the user's password.
+         */
+        if (PasswordUtil.isHash(password)) {
+            return;
         }
+
+        /*
+         * Plaintext values represent newly created or changed passwords.
+         * Enforce the policy at the backend before hashing.
+         */
+        PasswordUtil.validatePolicy(password);
+
+        user.setPassword(
+                PasswordUtil.hash(password)
+        );
     }
 }
