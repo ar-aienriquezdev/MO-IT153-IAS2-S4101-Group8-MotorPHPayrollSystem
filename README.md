@@ -95,16 +95,53 @@ Milestone 2 Controls **1 through 5** have been implemented and verified.
 - Secure runtime sessions verified using a negotiated TLS cipher
 - Dedicated automated database-hardening security tests
 
-### 🔄 Control 6 — Secure Development and Automated Security Assurance
+### ✅ Control 6 — Secure Development, Security Testing, and Automated Quality Assurance
 
-Control 6 is the next Milestone 2 implementation stage. Existing security-assurance tooling already includes:
+Control 6 is implemented and verified as the final Milestone 2 security-assurance layer.
 
-- JUnit 5
-- JaCoCo coverage reporting
-- SonarQube Cloud static analysis
-- Maven-based build verification
+Implemented assurance controls include:
 
-Control 6 will consolidate these with dependency analysis, repository secret scanning, security-quality-gate verification, remediation/exception handling, and retained security evidence.
+- Maven-integrated **OWASP Dependency-Check 13.0.0**
+- Dependency remediation with a documented JasperReports compatibility exception
+- Dedicated Maven `security-regression` profile for security-critical JUnit tests
+- Expanded security regression coverage for authentication, authorization, validation, audit logging, database hardening, attendance, and security-relevant UI/service branches
+- **JaCoCo 0.8.13** HTML, XML, and CSV coverage generation
+- **SonarQube Cloud** analysis from the `main` branch with JaCoCo XML import
+- **Gitleaks** scans of both the current working tree and Git history
+- Removal of production `printStackTrace()` calls in favor of centralized Log4j2 error logging
+- Retained security-quality-gate and dependency-exception evidence under `docs/security/`
+
+Final Control 6 verification achieved:
+
+```text
+Full regression suite
+Tests run: 310
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+
+Dedicated security regression suite
+Tests run: 158
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+Final SonarQube Cloud verification on `main` reported:
+
+- **Quality Gate: Passed**
+- **New-code coverage: 80.03%** — required threshold: `>= 80.0%`
+- **New-code duplication: 0.18%** — required threshold: `<= 3.0%`
+- **Security rating: A**
+- **Security issues: 0**
+- **Security Hotspots: 0**
+- **Security review rating: A**
+
+The overall-code dashboard still reports legacy/shared-code technical debt, including an overall Reliability rating of **C** with **9 Medium reliability findings**. These remaining reliability findings are non-blocking under the configured Sonar quality gate and are retained for future cleanup rather than being represented as remediated.
+
+SonarQube also reports **6 dependency risks** associated with JasperReports 6.21.5 and transitive JFreeChart 1.0.19 dependencies. These are tracked separately from code-security issues. The existing OWASP exception `SEC-DEP-001` applies specifically to the documented JasperReports Dependency-Check finding and does not silently classify all Sonar dependency risks as remediated.
 
 ---
 
@@ -117,11 +154,13 @@ Control 6 will consolidate these with dependency analysis, repository secret sca
 | **Build Tool** | Apache Maven | Dependencies and security tooling are managed through `pom.xml` |
 | **Database** | MySQL 8.4.x | Control 5 verified using MySQL Community Server 8.4.5 |
 | **JDBC Driver** | MySQL Connector/J 9.3.0 | Managed through Maven |
-| **Reporting** | JasperReports | Managed through Maven |
+| **Reporting** | JasperReports 6.21.5 | Managed through Maven; residual dependency risk is documented |
 | **Testing** | JUnit 5.13.1 | Functional and security-assurance tests |
-| **Logging** | Log4j2 2.23.1 | Structured audit-file persistence |
-| **Coverage** | JaCoCo 0.8.13 | Maven-integrated test-coverage reporting |
-| **Static Analysis** | SonarQube Cloud | Maven-integrated static analysis |
+| **Logging** | Log4j2 2.25.5 | Structured audit-file and centralized error logging |
+| **Coverage** | JaCoCo 0.8.13 | Maven-integrated HTML/XML/CSV coverage reporting |
+| **Dependency Security** | OWASP Dependency-Check 13.0.0 | Maven-integrated dependency-security gate |
+| **Secret Scanning** | Gitleaks | Working-tree and Git-history secret scanning |
+| **Static Analysis / Quality Gate** | SonarQube Cloud | Main-branch SAST/SCA analysis with JaCoCo coverage import |
 | **OS** | Windows, macOS, or Linux | Database/server configuration differs by operating system |
 
 ---
@@ -140,7 +179,7 @@ The following accounts are retained for **controlled local testing, mentor revie
 
 Users can log in using either their **User ID** or **email address**.
 
-> ⚠️ These credentials are for the controlled academic test environment only. They must not be reused for real, personal, or production accounts. Credential/test-fixture handling will be reviewed again under Control 6.
+> ⚠️ These credentials are intentionally published fixtures for the controlled academic dataset and mentor/evaluation workflow. They are not operational secrets and must not be reused for personal, external, or production accounts. Any deployment outside the academic test environment must replace them with environment-specific credentials.
 
 ---
 
@@ -724,7 +763,7 @@ This provides multiple enforcement layers and prevents silent fallback to a plai
 
 # 🧪 Testing
 
-The project uses **JUnit 5** for functional and security-assurance testing.
+The project uses **JUnit 5** for functional and security-assurance testing. Control 6 adds a repeatable dedicated security-regression profile and expands test coverage for the final SonarQube quality gate.
 
 ## Current Security-Focused Test Classes
 
@@ -737,60 +776,188 @@ SecurityServiceLayerValidationTest
 SecurityAuditLoggerTest
 SecurityAuditTraceabilityTest
 SecurityDatabaseHardeningTest
+SecurityCoverageExpansionTest
+SecurityUserServiceCoverageTest
+SecurityLoginServiceReadCoverageTest
+SecurityLeaveOvertimeCoverageTest
+SecurityHomePageCoverageTest
+SecurityHomePageActionCoverageTest
+SecurityLoginPageCoverageTest
+SecurityAuthorizationBranchCoverageTest
+SecurityAttendanceServiceCoverageTest
+SecurityFinalCoverageThresholdTest
 ```
 
-### Control 5 Dedicated Security Test
+## Dedicated Security Regression Suite
 
 Run:
 
 ```bash
-mvn -Dtest=SecurityDatabaseHardeningTest test
+mvn -Psecurity-regression test
 ```
 
-The Control 5 suite verifies:
+The dedicated profile executes the `Security*Test` classes independently of the broader GUI/application regression suite.
 
-1. The application uses the dedicated non-administrative account.
-2. The JDBC session negotiates an encrypted TLS cipher.
-3. MySQL requires secure transport.
-4. The database listener is restricted to loopback.
-5. The application account has only expected privileges.
-6. Attempts to override the centralized JDBC TLS policy are rejected.
-
-At Control 5 verification:
+Final Control 6 result:
 
 ```text
-Tests run: 6
+Tests run: 158
 Failures: 0
 Errors: 0
 Skipped: 0
 BUILD SUCCESS
 ```
 
+The security regression suite covers:
+
+- password hashing and centralized password-policy enforcement;
+- authentication failure counting and timed lockout;
+- backend RBAC, permissions, ownership, and fail-closed role handling;
+- service-layer validation and SQL-safety regression protection;
+- structured audit logging and traceability;
+- hardened database identity, privilege, listener, and TLS verification;
+- attendance/service authorization and exception-handling paths; and
+- targeted security-relevant branch coverage used by the final SonarQube quality gate.
+
 ## Full Regression Suite
 
-Run:
+For the full application test suite:
 
 ```bash
 mvn clean test
 ```
 
-or use:
+For full verification with JaCoCo report generation while intentionally skipping a repeated Dependency-Check run:
 
-```text
-NetBeans → Clean and Build
+```bash
+mvn clean verify -Ddependency-check.skip=true
 ```
 
-At completion of Control 5, the complete project regression suite reported:
+Final Control 6 regression result:
 
 ```text
-Tests run: 221
+Tests run: 310
 Failures: 0
 Errors: 0
 Skipped: 0
 BUILD SUCCESS
 ```
 
-This confirms that database hardening did not introduce detected regressions into the existing MotorPH functionality or previously implemented security controls.
+This confirms that the completed Milestone 2 security controls and final coverage expansion did not introduce detected regressions into the existing MotorPH application test suite.
+
+## JaCoCo Coverage
+
+Maven `verify` generates:
+
+```text
+target/site/jacoco/index.html
+target/site/jacoco/jacoco.xml
+target/site/jacoco/jacoco.csv
+```
+
+SonarQube imports:
+
+```text
+target/site/jacoco/jacoco.xml
+```
+
+The final SonarQube **New Code** coverage result is:
+
+```text
+80.03%
+Required: >= 80.0%
+Quality Gate: PASSED
+```
+
+The SonarQube **overall-code** coverage value is lower because the project contains substantial legacy and NetBeans-generated Swing UI code. The release gate is evaluated on the configured SonarQube new-code conditions.
+
+## OWASP Dependency-Check
+
+OWASP Dependency-Check 13.0.0 is integrated into the Maven workflow.
+
+Control 6 dependency remediation reduced the initial result from:
+
+```text
+5 vulnerable dependencies
+16 vulnerabilities
+```
+
+to:
+
+```text
+1 vulnerable dependency
+1 vulnerability
+```
+
+before application of the narrowly scoped documented JasperReports exception.
+
+The final automated gate report records:
+
+```text
+Vulnerable Dependencies: 0
+Vulnerabilities Found: 0
+Vulnerabilities Suppressed: 1
+BUILD SUCCESS
+```
+
+The suppression is traceable to the temporary exception in:
+
+```text
+docs/security/DEPENDENCY-EXCEPTIONS.md
+```
+
+The exception is not a claim that the underlying JasperReports issue is fixed.
+
+## SonarQube Cloud Verification
+
+After generating the JaCoCo XML report, run the SonarQube analysis from the supported `main` branch:
+
+```bash
+mvn sonar:sonar
+```
+
+Final Control 6 SonarQube results:
+
+```text
+Quality Gate: PASSED
+New-code coverage: 80.03%
+New-code duplication: 0.18%
+Security rating: A
+Security issues: 0
+Security Hotspots: 0
+Security review rating: A
+```
+
+SonarQube separately reports six remaining dependency risks associated with JasperReports and transitive JFreeChart components. They are retained as documented dependency technical debt and are not represented as remediated.
+
+## Gitleaks Secret Scanning
+
+The final Control 6 secret scans cover both the current repository contents and Git history.
+
+Working tree:
+
+```bash
+gitleaks dir . \
+  --redact \
+  --report-format json \
+  --report-path docs/security/evidence/gitleaks-working-tree-report.json
+```
+
+Git history:
+
+```bash
+gitleaks git . \
+  --redact \
+  --report-format json \
+  --report-path docs/security/evidence/gitleaks-history-report.json
+```
+
+Final result:
+
+```text
+Working tree: no leaks found
+Git history: 17 commits scanned; no leaks found
+```
 
 ---
 
@@ -906,21 +1073,53 @@ src/test/java/
 
 # 📊 Security Assurance Tooling
 
-The project currently integrates or uses:
+The completed Control 6 assurance workflow uses:
 
 ```text
 JUnit 5
-JaCoCo
-SonarQube Cloud
 Maven
+JaCoCo 0.8.13
+OWASP Dependency-Check 13.0.0
+Gitleaks
+SonarQube Cloud
 Git / GitHub
 ```
 
-Control 6 will further consolidate security assurance through dependency scanning, repository secret scanning, quality-gate evaluation, and retained remediation evidence.
+The final security-quality-gate record is maintained in:
+
+```text
+docs/security/SECURITY-QUALITY-GATE.md
+```
+
+The temporary JasperReports dependency exception is maintained in:
+
+```text
+docs/security/DEPENDENCY-EXCEPTIONS.md
+```
+
+Final retained assurance evidence demonstrates:
+
+- repeatable functional and security regression testing;
+- JaCoCo XML coverage imported into SonarQube;
+- Maven-integrated dependency scanning and documented exception handling;
+- clean Gitleaks working-tree and Git-history scans;
+- removal of production stack-trace output;
+- successful SonarQube main-branch analysis;
+- **SonarQube Quality Gate: Passed**;
+- **Security rating: A** with **0 security issues** and **0 Security Hotspots**; and
+- **80.03% new-code coverage**, satisfying the configured `>= 80%` threshold.
+
+Remaining overall reliability findings and Sonar dependency risks are retained as documented technical debt rather than being represented as remediated.
 
 ---
 
 # 📚 Documentation & Assets
+
+- 🔐 **Final Control 6 Security Quality Gate:**
+  `docs/security/SECURITY-QUALITY-GATE.md`
+
+- ⚠️ **Dependency Security Exception Register:**
+  `docs/security/DEPENDENCY-EXCEPTIONS.md`
 
 - 📄 **Expanded System Design Documentation:**
   <https://docs.google.com/spreadsheets/d/1O2_Qsl-e7WOu_GajDM0SVfFg9hynrvFhv8UL3yjqZXo>
