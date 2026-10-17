@@ -956,7 +956,7 @@ Final result:
 
 ```text
 Working tree: no leaks found
-Git history: 17 commits scanned; no leaks found
+Git history: no leaks found
 ```
 
 ---
