@@ -7,6 +7,7 @@ import util.AuthorizationService;
 import util.PasswordUtil;
 import util.Permission;
 import util.SessionManager;
+import util.AuditLogger;
 
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
@@ -117,6 +118,15 @@ public class UserService {
 
         try {
             userDAO.addUser(user);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_CREATED",
+                    "target=user:" + user.getUserID()
+                            + "; result=SUCCESS",
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error adding user",
@@ -141,6 +151,14 @@ public class UserService {
 
         ensurePasswordIsSecurelyPrepared(user);
         performUserUpdate(user);
+        
+        AuditLogger.log(
+                SessionManager.getUserID(),
+                "USER_ACCOUNT_UPDATED",
+                "target=user:" + user.getUserID()
+                        + "; result=SUCCESS",
+                null
+        );
     }
 
     /**
@@ -186,6 +204,14 @@ public class UserService {
             );
 
             performUserUpdate(currentUser);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "PASSWORD_CHANGED",
+                    "target=user:" + SessionManager.getUserID()
+                            + "; result=SUCCESS",
+                    null
+            );
 
         } catch (SQLException e) {
             throw new RuntimeException(
@@ -236,6 +262,15 @@ public class UserService {
             user.setAccountStatus(canonicalStatus);
 
             performUserUpdate(user);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_STATUS_CHANGED",
+                    "target=user:" + userID
+                            + "; result=SUCCESS"
+                            + "; new_status=" + canonicalStatus,
+                    null
+            );
 
         } catch (SQLException e) {
             throw new RuntimeException(
@@ -254,6 +289,15 @@ public class UserService {
 
         try {
             userDAO.deleteUser(userID);
+            
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    "USER_ACCOUNT_DELETED",
+                    "target=user:" + userID
+                            + "; result=SUCCESS",
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error deleting user",

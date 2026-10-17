@@ -7,6 +7,7 @@ import util.AuthorizationService;
 import util.Permission;
 import util.SessionManager;
 import util.RequestValidationUtil;
+import util.AuditLogger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -134,6 +135,22 @@ public class OvertimeService {
                     overtimeID,
                     approvalStatusID
             );
+            
+            String action = switch (approvalStatusID) {
+                case 1 -> "OVERTIME_APPROVED";
+                case 2 -> "OVERTIME_REJECTED";
+                default -> "OVERTIME_STATUS_CHANGED";
+            };
+
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    action,
+                    "target=overtime:" + overtimeID
+                            + "; result=SUCCESS"
+                            + "; new_status_id=" + approvalStatusID,
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error updating approval status of overtime",

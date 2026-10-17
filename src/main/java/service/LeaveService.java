@@ -7,6 +7,7 @@ import util.AuthorizationService;
 import util.Permission;
 import util.SessionManager;
 import util.RequestValidationUtil;
+import util.AuditLogger;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -125,6 +126,22 @@ public class LeaveService {
                     leaveID,
                     approvalStatusID
             );
+            
+            String action = switch (approvalStatusID) {
+                case 1 -> "LEAVE_APPROVED";
+                case 2 -> "LEAVE_REJECTED";
+                default -> "LEAVE_STATUS_CHANGED";
+            };
+
+            AuditLogger.log(
+                    SessionManager.getUserID(),
+                    action,
+                    "target=leave:" + leaveID
+                            + "; result=SUCCESS"
+                            + "; new_status_id=" + approvalStatusID,
+                    null
+            );
+            
         } catch (SQLException e) {
             throw new RuntimeException(
                     "Error updating approval status of leave",
