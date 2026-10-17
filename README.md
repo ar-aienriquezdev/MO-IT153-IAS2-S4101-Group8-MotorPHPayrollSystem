@@ -922,13 +922,13 @@ Control 6 will further consolidate security assurance through dependency scannin
 
 # 📚 Documentation & Assets
 
-- 📄 **Expanded System Design Documentation:**  
+- 📄 **Expanded System Design Documentation:**
   <https://docs.google.com/spreadsheets/d/1O2_Qsl-e7WOu_GajDM0SVfFg9hynrvFhv8UL3yjqZXo>
 
-- ✅ **Testing Documentation:**  
+- ✅ **Testing Documentation:**
   <https://docs.google.com/spreadsheets/d/1CtGctWMrtfvwRpn_sDlLcfvddDmkd6QHmhEyFHldKI8>
 
-- 💾 **Current MotorPH Payroll System SQL Folder:**  
+- 💾 **Current MotorPH Payroll System SQL Folder:**
   <https://drive.google.com/drive/folders/1SoM4fx7P42JrqvOrqJZqKarLgRVgy571?usp=sharing>
 
 ---
