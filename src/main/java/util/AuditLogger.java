@@ -35,16 +35,16 @@ public final class AuditLogger {
     ) {
 
         String safeUserId =
-                truncate(userId, MAX_USER_ID);
+                sanitizeAndTruncate(userId, MAX_USER_ID);
 
         String safeAction =
-                truncate(action, MAX_ACTION);
+                sanitizeAndTruncate(action, MAX_ACTION);
 
         String safeDetails =
-                truncate(details, MAX_DETAILS);
+                sanitizeAndTruncate(details, MAX_DETAILS);
 
         String safeIpAddress =
-                truncate(ipAddress, MAX_IP_ADDRESS);
+                sanitizeAndTruncate(ipAddress, MAX_IP_ADDRESS);
 
         if (safeAction == null || safeAction.isBlank()) {
             safeAction = "UNSPECIFIED_EVENT";
@@ -93,6 +93,77 @@ public final class AuditLogger {
                 safeDetails,
                 safeIpAddress
         );
+    }
+
+    /*
+     * Neutralizes characters that can create or mimic extra
+     * physical lines in the audit file before the field-length
+     * limit is applied, so one audit event can never appear
+     * as multiple log entries.
+     */
+    private static String sanitizeAndTruncate(
+            String value,
+            int maxLength
+    ) {
+
+        if (value == null) {
+            return null;
+        }
+
+        StringBuilder sanitized =
+                new StringBuilder(value.length());
+
+        for (int i = 0; i < value.length(); i++) {
+
+            char c = value.charAt(i);
+
+            switch (c) {
+
+                case '\r':
+                    sanitized.append("\\r");
+                    break;
+
+                case '\n':
+                    sanitized.append("\\n");
+                    break;
+
+                case '\u2028':
+                    sanitized.append("\\u2028");
+                    break;
+
+                case '\u2029':
+                    sanitized.append("\\u2029");
+                    break;
+
+                default:
+                    if (isControlCharacter(c)) {
+                        sanitized.append(
+                                String.format(
+                                        "\\u%04X",
+                                        (int) c
+                                )
+                        );
+                    } else {
+                        sanitized.append(c);
+                    }
+            }
+        }
+
+        return truncate(sanitized.toString(), maxLength);
+    }
+
+    /*
+     * ISO control characters are the C0 range, DEL, and
+     * the C1 range. Carriage return, line feed, and the
+     * Unicode line/paragraph separators are handled above.
+     */
+    private static boolean isControlCharacter(
+            char c
+    ) {
+
+        return c <= 0x1F
+                || c == 0x7F
+                || (c >= 0x80 && c <= 0x9F);
     }
 
     private static String truncate(
